@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { connectDB } = require('./src/config/db');
 const trainerRoutes = require('./src/config/routes/trainerRoutes');require('dotenv').config();
+const packageRoutes = require('./src/config/routes/packageRoutes');
 
 const app = express();
 
@@ -12,6 +13,7 @@ app.use(cors());
 // Kết nối Database
 connectDB();
 app.use('/api/trainers', trainerRoutes);
+app.use('/api', packageRoutes);
 
 // Route kiểm tra
 app.get('/', (req, res) => {
