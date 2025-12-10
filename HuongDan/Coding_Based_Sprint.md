@@ -65,7 +65,7 @@ This document maps the Project Schedule and PBIs to specific source code files a
 - **Membership Module** (`[PBI-05]`, `[PBI-06]`, `[PBI-07]`):
   - `src/controllers/membershipController.js` (purchase, renew, getStatus)
   - `src/routes/membershipRoutes.js`
-- **Payment Module** (`[PBI-43]`, `[PBI-44]`, `[PBI-08]`, `[PBI-33]`):
+- **Payment Module** (`[PBI-43]`, `[PBI-44]`, `[PBI-08]`, `[PBI-33]`, `[UC-55]`):
   - `src/controllers/paymentController.js` (processPayOS, confirmOffline, refund)
   - `src/services/payOSService.js` (3rd party integration)
   - `src/routes/paymentRoutes.js`
@@ -96,9 +96,10 @@ This document maps the Project Schedule and PBIs to specific source code files a
 #### Backend
 - **PT Module** (`[PBI-24]`, `[PBI-25]`):
   - `src/controllers/trainerController.js` (setAvailability, getSchedule)
-- **Booking Module** (`[PBI-10]`, `[PBI-11]`, `[PBI-12]`, `[PBI-13]`, `[PBI-26]`):
+- **Booking Module** (`[PBI-10]`, `[PBI-11]`, `[PBI-12]`, `[PBI-13]`, `[PBI-26]`, `[UC-53]`, `[UC-54]`):
   - `src/controllers/bookingController.js` (bookSession, cancel, reschedule, approve)
   - `src/routes/bookingRoutes.js`
+  - **Real-time**: `src/services/socketService.js` (Booking Events)
 - **Session Operations** (`[PBI-14]`, `[PBI-15]`, `[PBI-27]`, `[PBI-28]`):
   - `src/controllers/sessionController.js` (generateQR, validateQR, addNotes)
   - `src/controllers/progressController.js` (logMetrics)
@@ -122,7 +123,7 @@ This document maps the Project Schedule and PBIs to specific source code files a
 **Goal**: AI Integration (Gemini), Support System (Tickets/Chat), and Manager Reports.
 
 #### Database
-- Tables: `ai_workout_plans`, `ai_nutrition_plans`, `pose_sessions`, `injury_risk_analyses`, `support_tickets`, `ticket_messages`, `chat_sessions`, `chat_messages`, `reports`
+- Tables: `ai_workout_plans`, `ai_nutrition_plans`, `pose_sessions`, `injury_risk_analyses`, `support_tickets`, `ticket_messages`, `chat_sessions`, `chat_messages`, `reports`, `blog_categories`, `blog_posts`
 
 #### Backend
 - **AI Service** (`[PBI-17]`, `[PBI-18]`, `[PBI-19]`, `[PBI-20]`):
@@ -132,8 +133,12 @@ This document maps the Project Schedule and PBIs to specific source code files a
   - `src/controllers/ticketController.js`
   - `src/controllers/chatController.js` (Socket.io handlers for real-time)
   - `src/routes/supportRoutes.js`
-- **Report Module** (`[PBI-34]`, `[PBI-35]`, `[PBI-36]`):
-  - `src/controllers/reportController.js` (Aggregated SQL queries)
+- **Blog System** (`[UC-49]`, `[UC-50]`, `[UC-51]`, `[UC-52]`):
+  - `src/controllers/blogCategoryController.js`
+  - `src/controllers/blogPostController.js`
+  - `src/routes/blogRoutes.js`
+- **Report Module** (`[PBI-34]`, `[PBI-35]`, `[PBI-36]`, `[UC-45]`, `[UC-46]`, `[UC-47]`, `[UC-48]`):
+  - `src/controllers/reportController.js` (Aggregated SQL queries & Stats)
 
 #### Frontend
 - **Pages**:
@@ -142,6 +147,9 @@ This document maps the Project Schedule and PBIs to specific source code files a
   - `src/pages/support/TicketList.jsx`
   - `src/pages/support/LiveChat.jsx`
   - `src/pages/admin/ReportsDashboard.jsx`
+  - `src/pages/blog/BlogManagement.jsx` (Admin)
+  - `src/pages/blog/BlogList.jsx` (Public)
+  - `src/pages/blog/BlogPost.jsx` (Detail)
 - **Components**:
   - `src/components/ai/PoseOverlay.jsx` (Canvas for skeleton drawing)
   - `src/components/support/ChatWindow.jsx`
