@@ -1,7 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const { connectDB } = require('./src/config/db');
+// Import database config (New Structure)
+const db = require('./app/Models');
 
 dotenv.config();
 
@@ -13,26 +14,30 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Database Connection
-connectDB();
+// Database Connection Test
+db.sequelize.authenticate()
+    .then(() => {
+        console.log('Database connected successfully (Method: Sequelize/MSSQL).');
+    })
+    .catch(err => {
+        console.error('Unable to connect to the database:', err);
+    });
 
-// Import Routes
-const authRoutes = require('./src/routes/authRoutes');
-const adminRoutes = require('./src/routes/adminRoutes');
+// Routes (Placeholder for now, as we migrate Controllers)
+app.use('/api', require('./routes/api'));
 
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/user', require('./src/routes/userRoutes'));
-app.use('/api/membership', require('./src/routes/membershipRoutes'));
-app.use('/api/payment', require('./src/routes/paymentRoutes'));
-app.use('/api/invoices', require('./src/routes/invoiceRoutes'));
-app.use('/api/trainers', require('./src/routes/trainerRoutes'));
-app.use('/api/booking', require('./src/routes/bookingRoutes'));
-app.use('/api/sessions', require('./src/routes/sessionRoutes'));
-app.use('/api/ai', require('./src/routes/aiRoutes'));
 app.get('/', (req, res) => {
-    res.send('GymNexus Backend is running...');
+    res.send('GymNexus Backend is running with New Structure (Models/Migrations).');
+});
+
+// Example Route to test Models
+app.get('/api/test-users', async (req, res) => {
+    try {
+        const users = await db.NguoiDung.findAll({ limit: 5 });
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 app.listen(PORT, () => {
