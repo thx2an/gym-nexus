@@ -80,9 +80,27 @@ export default function LoginPage() {
     } catch (err) {
       console.error("Login error:", err);
     } finally {
-      setLoading(false); // 🔥 Stop loading
+      setLoading(false); // Stop loading
     }
   };
+
+  // SEPARATE ROLE 
+  const redirectByRole = (role) => {
+  switch (role) {
+    case "manager":
+      window.location.href = "/manager/dashboard";
+      break;
+    case "support":
+      window.location.href = "/support/dashboard";
+      break;
+    case "trainer":
+      window.location.href = "/personal-trainer/dashboard";
+      break;
+    default:
+      window.location.href = "/member/dashboard";
+  }
+};
+
 
   return (
     <div className="bg-white w-full max-w-md p-8 rounded-xl shadow-[0_2px_8px_rgba(0,10,8,0.15)] border border-borderColor-light">
@@ -142,6 +160,8 @@ export default function LoginPage() {
           {loading ? "Processing..." : "Login"}
         </button>
       </form>
+
+      
 
       {/* Forgot Password */}
       <div className="text-center mt-4">
