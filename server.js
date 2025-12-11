@@ -3,6 +3,10 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const { connectDB } = require('./src/config/dbConfig');
 
+// notificaton, staff routes
+const notificationRoute = require('./src/routes/notificationRoute');
+const staffRoute = require('./src/routes/staffRoute');
+
 dotenv.config();
 
 const app = express();
@@ -14,6 +18,9 @@ app.use(express.urlencoded({ extended: true }));
 connectDB();
 
 const packageRoutes = require('./src/routes/packageRoute');
+
+app.use('/api/notifications', notificationRoute);
+app.use('/api/staff', staffRoute);
 
 app.use('/api/packages', packageRoutes);
 
@@ -36,3 +43,6 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`Local: http://localhost:${PORT}`);
 });
+
+
+
