@@ -13,7 +13,14 @@
     "license": "ISC",
     "dependencies": {
         "@google/generative-ai": "^0.24.1",
+        "bcryptjs": "^3.0.3",
+        "cors": "^2.8.5",
+        "dotenv": "^17.2.3",
+        "express": "^5.2.1",
         "pdfkit": "^0.17.2",
-        "qrcode": "^1.5.4"
+        "qrcode": "^1.5.4",
+        "sequelize": "^6.37.7",
+        "sequelize-cli": "^6.6.3",
+        "tedious": "^19.1.3"
     }
 }
