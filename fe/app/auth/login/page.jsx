@@ -23,12 +23,12 @@ export default function LoginPage() {
   const [toast, setToast] = useState({ show: false, message: "" });
 
   const handleExitConfirm = () => {
-  setExitOpen(false);
-  setToast({ show: true, message: "Exited to home page." });
+    setExitOpen(false);
+    setToast({ show: true, message: "Exited to home page." });
 
-  setTimeout(() => {
-    window.location.href = "/";
-  }, 700);
+    setTimeout(() => {
+      window.location.href = "/";
+    }, 700);
   };
 
 
@@ -160,16 +160,16 @@ export default function LoginPage() {
 
       {/* Back to Home */}
       <p
-      onClick={() => setExitOpen(true)}
-      className="text-center mt-3 text-accent underline cursor-pointer"
+        onClick={() => setExitOpen(true)}
+        className="text-center mt-3 text-accent underline cursor-pointer"
       >
-      ← Back to Home
+        ← Back to Home
       </p>
 
       <ExitModal
-      open={exitOpen}
-      onClose={() => setExitOpen(false)}
-      onConfirm={handleExitConfirm}
+        open={exitOpen}
+        onClose={() => setExitOpen(false)}
+        onConfirm={handleExitConfirm}
       />
 
       <Toast
