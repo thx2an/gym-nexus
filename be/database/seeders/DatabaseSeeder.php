@@ -33,6 +33,10 @@ class DatabaseSeeder extends Seeder
             NoteBuoiTapSeeder::class,
             MaQRPhienTapSeeder::class,
             ThanhToanSeeder::class,
+            HoaDonSeeder::class,
+            YeuCauHoanTienSeeder::class,
+            HoSoTienDoSeeder::class,
+            LichTapAISeeder::class,
         ]);
     }
 }
