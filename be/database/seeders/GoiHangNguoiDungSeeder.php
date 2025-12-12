@@ -52,7 +52,7 @@ class GoiHangNguoiDungSeeder extends Seeder
         ];
 
         foreach ($packages as $package) {
-            GoiHangNguoiDung::create($package);
+            GoiHangNguoiDung::firstOrCreate(['code' => $package['code']], $package);
         }
     }
 }

@@ -24,12 +24,14 @@ class ChiNhanhSeeder extends Seeder
         ];
 
         foreach ($gymNames as $index => $name) {
-            ChiNhanh::create([
-                'name' => $name,
-                'address' => $faker->address,
-                'phone' => $faker->phoneNumber,
-                'is_active' => true,
-            ]);
+            ChiNhanh::firstOrCreate(
+                ['name' => $name],
+                [
+                    'address' => $faker->address,
+                    'phone' => $faker->phoneNumber,
+                    'is_active' => true,
+                ]
+            );
         }
     }
 }

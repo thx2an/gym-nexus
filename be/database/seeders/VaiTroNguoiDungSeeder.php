@@ -44,7 +44,7 @@ class VaiTroNguoiDungSeeder extends Seeder
                 $roleId = $roles->random()->role_id;
             }
 
-            VaiTroNguoiDung::create([
+            VaiTroNguoiDung::firstOrCreate([
                 'user_id' => $user->user_id,
                 'role_id' => $roleId,
             ]);
