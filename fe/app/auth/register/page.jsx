@@ -116,9 +116,9 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="bg-white w-full max-w-md p-8 rounded-xl shadow-[0_2px_8px_rgba(0,10,8,0.15)] border border-borderColor-light">
+    <div className="bg-accent w-full max-w-md p-8 rounded-xl shadow-[0_2px_8px_rgba(0,10,8,0.15)] border border-borderColor-light">
 
-      <h1 className="text-3xl font-semibold text-text-strong text-center mb-6">
+      <h1 className="text-3xl font-semibold text-bg-base text-center mb-6">
         Create Account
       </h1>
 
@@ -243,25 +243,25 @@ export default function RegisterPage() {
 
       <p className="text-center mt-4 text-text-medium">
         Already have an account?{" "}
-        <Link href="/auth/login" className="text-accent font-semibold">Login</Link>
+        <Link href="/auth/login" className="text-bg-base hover:text-bg-secondarySurface font-semibold">Login</Link>
       </p>
 
       {/* Back to Home */}
       <p
-      onClick={() => setExitOpen(true)}
-      className="text-center mt-3 text-accent underline cursor-pointer"
+        onClick={() => setExitOpen(true)}
+        className="text-center mt-3 text-bg-base hover:text-bg-secondarySurface underline cursor-pointer"
       >
-      ← Back to Home
+        ← Back to Home
       </p>
 
 
-      <ExitModal 
+      <ExitModal
         open={exitOpen}
         onClose={() => setExitOpen(false)}
         onConfirm={handleExitConfirm}
       />
 
-      <Toast 
+      <Toast
         show={toast.show}
         message={toast.message}
         onClose={() => setToast({ show: false, message: "" })}

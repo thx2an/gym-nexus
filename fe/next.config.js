@@ -4,7 +4,13 @@ const nextConfig = {
   swcMinify: true,
 
   images: {
-    domains: ["localhost"],
+    remotePatterns: [
+      {
+        protocol: "http",
+        hostname: "localhost",
+      },
+      // If you have other domains like AWS S3 or Supabase, add them here
+    ],
   }
 };
 

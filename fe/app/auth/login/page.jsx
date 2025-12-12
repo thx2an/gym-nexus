@@ -86,26 +86,26 @@ export default function LoginPage() {
 
   // SEPARATE ROLE 
   const redirectByRole = (role) => {
-  switch (role) {
-    case "manager":
-      window.location.href = "/manager/dashboard";
-      break;
-    case "support":
-      window.location.href = "/support/dashboard";
-      break;
-    case "trainer":
-      window.location.href = "/personal-trainer/dashboard";
-      break;
-    default:
-      window.location.href = "/member/dashboard";
-  }
-};
+    switch (role) {
+      case "manager":
+        window.location.href = "/manager/dashboard";
+        break;
+      case "support":
+        window.location.href = "/support/dashboard";
+        break;
+      case "trainer":
+        window.location.href = "/personal-trainer/dashboard";
+        break;
+      default:
+        window.location.href = "/member/dashboard";
+    }
+  };
 
 
   return (
-    <div className="bg-white w-full max-w-md p-8 rounded-xl shadow-[0_2px_8px_rgba(0,10,8,0.15)] border border-borderColor-light">
+    <div className="bg-accent w-full max-w-md p-8 rounded-xl shadow-[0_2px_8px_rgba(0,10,8,0.15)] border border-borderColor-light">
 
-      <h1 className="text-3xl font-semibold text-text-strong text-center mb-6">
+      <h1 className="text-3xl font-semibold text-bg-base text-center mb-6">
         Login
       </h1>
 
@@ -161,11 +161,11 @@ export default function LoginPage() {
         </button>
       </form>
 
-      
+
 
       {/* Forgot Password */}
       <div className="text-center mt-4">
-        <Link href="/auth/forgot-password" className="text-accent underline">
+        <Link href="/auth/forgot-password" className="text-bg-base hover:text-bg-secondarySurface underline">
           Forgot password?
         </Link>
       </div>
@@ -173,7 +173,7 @@ export default function LoginPage() {
       {/* Register */}
       <p className="text-center mt-4 text-text-medium">
         Don’t have an account?{" "}
-        <Link href="/auth/register" className="text-accent font-semibold">
+        <Link href="/auth/register" className="text-bg-base hover:text-bg-secondarySurface font-semibold">
           Register
         </Link>
       </p>
@@ -181,7 +181,7 @@ export default function LoginPage() {
       {/* Back to Home */}
       <p
         onClick={() => setExitOpen(true)}
-        className="text-center mt-3 text-accent underline cursor-pointer"
+        className="text-center mt-3 text-bg-base hover:text-bg-secondarySurface underline cursor-pointer"
       >
         ← Back to Home
       </p>

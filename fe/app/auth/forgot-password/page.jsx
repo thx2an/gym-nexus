@@ -55,9 +55,9 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="bg-white w-full max-w-md p-8 rounded-xl shadow-[0_2px_8px_rgba(0,10,8,0.15)] border border-borderColor-light">
+    <div className="bg-accent w-full max-w-md p-8 rounded-xl shadow-[0_2px_8px_rgba(0,10,8,0.15)] border border-borderColor-light">
 
-      <h1 className="text-2xl font-semibold text-text-strong text-center mb-4">
+      <h1 className="text-2xl font-semibold text-bg-base text-center mb-4">
         Reset Password
       </h1>
 
@@ -103,26 +103,26 @@ export default function ForgotPasswordPage() {
       )}
 
       <p className="text-center mt-4">
-        <Link href="/auth/login" className="text-accent underline">
+        <Link href="/auth/login" className="text-bg-base hover:text-bg-secondarySurface underline">
           Back to Login
         </Link>
       </p>
 
       {/* Back to Home */}
       <p
-      onClick={() => setExitOpen(true)}
-      className="text-center mt-3 text-accent underline cursor-pointer"
+        onClick={() => setExitOpen(true)}
+        className="text-center mt-3 text-bg-base hover:text-bg-secondarySurface underline cursor-pointer"
       >
-      ← Back to Home
+        ← Back to Home
       </p>
 
-      <ExitModal 
-      open={exitOpen}
-      onClose={() => setExitOpen(false)}
-      onConfirm={handleExitConfirm}
+      <ExitModal
+        open={exitOpen}
+        onClose={() => setExitOpen(false)}
+        onConfirm={handleExitConfirm}
       />
 
-      <Toast 
+      <Toast
         show={toast.show}
         message={toast.message}
         onClose={() => setToast({ show: false, message: "" })}
