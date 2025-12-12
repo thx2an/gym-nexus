@@ -32,11 +32,15 @@ class ChiNhanhNguoiDungSeeder extends Seeder
 
             $isFirst = true;
             foreach ($randomBranches as $branch) {
-                ChiNhanhNguoiDung::create([
-                    'user_id' => $user->user_id,
-                    'branch_id' => $branch->branch_id,
-                    'primary_flag' => $isFirst ? 1 : 0, // Chi nhánh đầu tiên là chi nhánh chính
-                ]);
+                ChiNhanhNguoiDung::firstOrCreate(
+                    [
+                        'user_id' => $user->user_id,
+                        'branch_id' => $branch->branch_id,
+                    ],
+                    [
+                        'primary_flag' => $isFirst ? 1 : 0,
+                    ]
+                );
                 $isFirst = false;
             }
         }

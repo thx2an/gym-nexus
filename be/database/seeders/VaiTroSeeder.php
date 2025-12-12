@@ -20,7 +20,7 @@ class VaiTroSeeder extends Seeder
         ];
 
         foreach ($roles as $role) {
-            VaiTro::create($role);
+            VaiTro::firstOrCreate(['code' => $role['code']], $role);
         }
     }
 }
