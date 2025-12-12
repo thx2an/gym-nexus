@@ -1,6 +1,6 @@
 "use client";
 
-import ReportChart from "../../(manager)/reports/ReportChart";
+import ReportChart from "../../manager/reports/ReportChart";
 
 export default function SupportAnalyticsPage() {
   const data = [
