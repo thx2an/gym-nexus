@@ -21,11 +21,32 @@ class VaiTroNguoiDungSeeder extends Seeder
             return;
         }
 
-        // Assign a random role to each user
-        foreach ($users as $user) {
+        // Create explicit map or logic
+        $memberRole = VaiTro::where('code', 'MEMBER')->first();
+        $ptRole = VaiTro::where('code', 'PT')->first();
+        $adminRole = VaiTro::where('code', 'ADMIN')->first();
+
+        foreach ($users as $index => $user) {
+            // Logic: 
+            // First 2 users -> ADMIN (or random valid role if admin not found)
+            // Next 3 users -> PT
+            // Rest -> MEMBER
+
+            $roleId = null;
+
+            if ($index < 1 && $adminRole) {
+                $roleId = $adminRole->role_id;
+            } elseif ($index < 4 && $ptRole) { // Users 1, 2, 3 -> PT
+                $roleId = $ptRole->role_id;
+            } elseif ($memberRole) {
+                $roleId = $memberRole->role_id;
+            } else {
+                $roleId = $roles->random()->role_id;
+            }
+
             VaiTroNguoiDung::create([
                 'user_id' => $user->user_id,
-                'role_id' => $roles->random()->role_id,
+                'role_id' => $roleId,
             ]);
         }
     }

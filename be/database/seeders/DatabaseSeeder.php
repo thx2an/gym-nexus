@@ -22,16 +22,17 @@ class DatabaseSeeder extends Seeder
             NguoiDungSeeder::class,
             VaiTroNguoiDungSeeder::class,
             ChiNhanhSeeder::class,
+            ChiNhanhNguoiDungSeeder::class,
+            ProfileMemberSeeder::class,
             GoiHangNguoiDungSeeder::class,
             GoiHangSeeder::class,
-            ChiNhanhNguoiDungSeeder::class,
             ProfilePTSeeder::class,
             LichLamViecPTSeeder::class,
             BuoiTapSeeder::class,
+            CheckinBuoiTapSeeder::class,
             NoteBuoiTapSeeder::class,
             MaQRPhienTapSeeder::class,
-            CheckinBuoiTapSeeder::class,
-            ProfileMemberSeeder::class,
+            ThanhToanSeeder::class,
         ]);
     }
 }

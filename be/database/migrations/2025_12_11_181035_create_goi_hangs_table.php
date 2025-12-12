@@ -23,7 +23,7 @@ return new class extends Migration
             // Foreign Keys
             // Note: Ensuring these tables exist is required for this migration to run successfully.
             $table->foreign('member_id')->references('member_id')->on('member_profiles')->onDelete('cascade');
-            $table->foreign('package_id')->references('package_id')->on('membership_packages')->onDelete('cascade');
+            $table->foreign('package_id')->references('package_id')->on('goi_hang_nguoi_dungs')->onDelete('cascade');
         });
     }
 
