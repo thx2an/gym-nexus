@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use App\Models\GoiHang;
 use App\Models\NguoiDung;
 use App\Models\GoiHangNguoiDung;
+use App\Models\ProfileMember;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -25,8 +26,11 @@ class GoiHangSeeder extends Seeder
         }
 
         foreach ($users as $user) {
-            // Random: 50% người dùng sẽ có gói tập
-            if (rand(0, 1)) {
+            // Find profile for this user
+            $profile = ProfileMember::where('user_id', $user->user_id)->first();
+
+            // Random: 50% người dùng sẽ có gói tập (Only if profile exists)
+            if ($profile && rand(0, 1)) {
                 $package = $packages->random();
 
                 $statuses = ['active', 'expired', 'pending', 'canceled'];
@@ -43,7 +47,7 @@ class GoiHangSeeder extends Seeder
                 }
 
                 GoiHang::create([
-                    'member_id' => $user->user_id,
+                    'member_id' => $profile->member_id, // Use profile ID
                     'package_id' => $package->package_id,
                     'start_date' => $startDate,
                     'end_date' => $endDate,
