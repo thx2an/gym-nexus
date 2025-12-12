@@ -1,18 +1,21 @@
-import "./globals.css";
-import Providers from "./providers";
+"use client";
 
-export const metadata = {
-  title: "Gym Nexus",
-  description: "Gym Management System with AI-powered tools"
-};
+import React from 'react';
+import Navbar from '@/components/common/Navbar';
+import localFont from 'next/font/local';
+import './globals.css';
 
-export default function RootLayout({ children }) {
+const obised = localFont({
+  src: '../public/fonts/Obised.ttf',
+  display: 'swap',
+  variable: '--font-obised',
+});
+
+export default function MemberLayout({ children }) {
   return (
-    <html lang="en">
-      <body className="bg-base-primarySurface text-text-strong">
-        <Providers>
-          {children}
-        </Providers>
+    <html lang="en" className={`${obised.variable}`}>
+      <body className="bg-base-primaryBg text-text-strong font-obised">
+        {children}
       </body>
     </html>
   );

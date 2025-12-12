@@ -1,3 +1,4 @@
+/** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
     "./app/**/*.{js,jsx,ts,tsx}",
@@ -6,108 +7,64 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        obised: ['var(--font-obised)', 'sans-serif'],
+      },
       colors: {
-        // ---------------------------------------------------------
-        // 1. Base Color System
-        // ---------------------------------------------------------
         base: {
-          primaryBg: "#000A08",
-          primarySurface: "#E8E9E1",
-          secondarySurface: "#DBCBB6"
+          primaryBg: "#141414",
+          primarySurface: "#282828",
+          secondarySurface: "#000014"
         },
-
-        // ---------------------------------------------------------
-        // 2. Neutral Palette (Text, Borders, Shadows)
-        // ---------------------------------------------------------
         text: {
-          strong: "#0F1A18",
-          medium: "#4F5856",
-          subtle: "#7C8481"
+          strong: "#f0f0f0",
+          medium: "#a0a0a0",
+          subtle: "#606060"
         },
         borderColor: {
-          light: "#D6D7D2",
-          dark: "#1A2421"
+          light: "#282828",
+          dark: "#000000"
         },
         shadow: {
-          soft: "rgba(0,10,8,0.15)",
-          strong: "rgba(0,10,8,0.25)"
+          soft: "rgba(0,0,0,0.3)",
+          strong: "rgba(0,0,0,0.5)"
         },
-
-        // ---------------------------------------------------------
-        // 3. Accent Colors
-        // ---------------------------------------------------------
         accent: {
-          DEFAULT: "#8AA39B",
-          hover: "#7C938C",
-          success: "#6B8F71",
-          warning: "#C29B59",
-          error: "#A45A52"
+          DEFAULT: "#f0f0f0",
+          hover: "#e0e0e0"
         },
-
-        // ---------------------------------------------------------
-        // 4. Background Layers
-        // ---------------------------------------------------------
         bg: {
-          base: "#E8E9E1",
-          subtle: "#F5F5F2",
-          muted: "#DBCBB6",
-          inverted: "#000A08"
+          base: "#141414",
+          subtle: "#1E1E1E",
+          muted: "#282828",
+          inverted: "#f0f0f0"
         },
-
-        // ---------------------------------------------------------
-        // 5. Components (Buttons, Inputs, Tables, Notifications)
-        // ---------------------------------------------------------
-
-        // Primary Button
         btnPrimary: {
-          DEFAULT: "#8AA39B",
-          hover: "#7C938C",
-          active: "#6E837E",
-          text: "#000A08"
+          DEFAULT: "#f0f0f0",
+          hover: "#e0e0e0",
+          text: "#141414"
         },
-
-        // Secondary Button
         btnSecondary: {
-          DEFAULT: "#DBCBB6",
-          hover: "#D1BFAA",
-          active: "#C4B39F",
-          text: "#000A08"
+          DEFAULT: "#282828",
+          hover: "#333333",
+          text: "#f0f0f0"
         },
-
-        // Ghost Button
-        btnGhost: {
-          border: "#4F5856",
-          text: "#4F5856",
-          hover: "rgba(0,10,8,0.08)"
-        },
-
-        // Input Styles
         form: {
-          bg: "#FFFFFF",
-          border: "#D6D7D2",
-          text: "#0F1A18",
-          focus: "#8AA39B"
+          bg: "#141414",
+          border: "#282828",
+          text: "#f0f0f0",
+          focus: "#f0f0f0"
         },
-
-        // Table Colors
-        table: {
-          headerBg: "#DBCBB6",
-          headerText: "#000A08",
-          rowOdd: "#FFFFFF",
-          rowEven: "#F5F5F2",
-          rowHover: "#E8E9E1"
-        },
-
-        // Notifications
+        // Keeping notification structure but mapping to dark theme
         notify: {
-          successBg: "#E7F3EC",
-          successText: "#6B8F71",
-          warningBg: "#FAF3E2",
-          warningText: "#C29B59",
-          errorBg: "#F7E8E7",
-          errorText: "#A45A52",
-          infoBg: "#E8E9E1",
-          infoText: "#0F1A18"
+          successBg: "#1E1E1E",
+          successText: "#f0f0f0",
+          warningBg: "#1E1E1E",
+          warningText: "#f0f0f0",
+          errorBg: "#1E1E1E",
+          errorText: "#f0f0f0",
+          infoBg: "#1E1E1E",
+          infoText: "#f0f0f0"
         }
       }
     }

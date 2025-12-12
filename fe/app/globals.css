@@ -2,30 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Global reset */
-* {
-  box-sizing: border-box;
-}
-
-/* Smooth font rendering */
-html, body {
-  padding: 0;
-  margin: 0;
-  font-family: system-ui, sans-serif;
-  background-color: #E8E9E1; /* base.primarySurface */
-  color: #0F1A18; /* text.strong */
-}
-
-/* Scrollbar styling */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
-::-webkit-scrollbar-thumb {
-  background: #8AA39B;
-  border-radius: 10px;
+::-webkit-scrollbar-track {
+  background: #141414;
 }
 
-::-webkit-scrollbar-track {
-  background: #F5F5F2;
+::-webkit-scrollbar-thumb {
+  background: #282828;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #333333;
+}
+
+html,
+body {
+  font-family: var(--font-obised), system-ui, sans-serif;
+  background-color: #141414;
+  color: #f0f0f0;
 }
