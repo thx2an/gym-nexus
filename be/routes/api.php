@@ -9,3 +9,5 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::get('/dang-nhap/getdata', [NguoiDungController::class, 'getData']);
+
+Route::middleware('auth:sanctum')->get('/check-token', [NguoiDungController::class, 'checkToken']);

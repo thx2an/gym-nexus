@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Hash;
+use App\Models\VaiTro;
 
 class NguoiDung extends Model
 {
@@ -52,5 +53,10 @@ class NguoiDung extends Model
     public function setPasswordHashAttribute($value)
     {
         $this->attributes['password_hash'] = Hash::make($value);
+    }
+
+    public function vaiTros()
+    {
+        return $this->belongsToMany(VaiTro::class, 'vai_tro_nguoi_dungs', 'user_id', 'role_id');
     }
 }

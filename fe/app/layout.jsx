@@ -1,5 +1,6 @@
 import "./globals.css";
 import Providers from "./providers";
+import ProtectedRoute from "@/components/common/ProtectedRoute";
 
 export const metadata = {
   title: "Gym Nexus",
@@ -11,7 +12,9 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className="bg-base-primarySurface text-text-strong">
         <Providers>
-          {children}
+          <ProtectedRoute>
+            {children}
+          </ProtectedRoute>
         </Providers>
       </body>
     </html>
