@@ -40,6 +40,9 @@ class DatabaseSeeder extends Seeder
             PlanDinhDuongAISeeder::class,
             PhienPhanTichTuTheSeeder::class,
             PhanHoiTuTheSeeder::class,
+            PhanTichRuiRoSeeder::class,
+            TicketNhanVienSeeder::class,
+            TinNhanTicketSeeder::class,
         ]);
     }
 }
