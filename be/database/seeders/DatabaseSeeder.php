@@ -45,6 +45,9 @@ class DatabaseSeeder extends Seeder
             TinNhanTicketSeeder::class,
             PhienTinNhanSeeder::class,
             NoiDungTinNhanSeeder::class,
+            KnowledgeBaseArticlesSeeder::class,
+            BaoCaoSeeder::class,
+            AuditLogsSeeder::class,
         ]);
     }
 }
