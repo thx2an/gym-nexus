@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Hash;
+use Laravel\Sanctum\HasApiTokens;
 use App\Models\VaiTro;
 
 class NguoiDung extends Model
 {
+    use HasApiTokens;
     protected $table = 'nguoi_dungs';
     protected $primaryKey = 'user_id';
 
@@ -24,6 +26,7 @@ class NguoiDung extends Model
         'gender',
         'date_of_birth',
         'status',
+        'hash_active',
     ];
 
     /**

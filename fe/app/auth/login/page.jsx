@@ -1,106 +1,117 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import ExitModal from "@/components/common/ExitModal";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { Eye, EyeOff } from "lucide-react";
+
 import Toast from "@/components/common/Toast";
 
-
 export default function LoginPage() {
+  const router = useRouter(); // Initialize router
   const [form, setForm] = useState({
-    identifier: "",
+    email: "",
     password: "",
   });
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
 
-  const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false); // ⭐ NEW STATE
+  // -----------------------------
+  // 1. TOKEN CHECK ON MOUNT
+  // -----------------------------
+  useEffect(() => {
+    // Check for timeout query param
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.get("reason") === "timeout") {
+      setToast({ show: true, message: "Session expired due to inactivity.", type: "error" });
+      // Clean up URL
+      router.replace("/auth/login");
+    }
+
+    const checkToken = async () => {
+      const token = localStorage.getItem("auth_token");
+      if (token) {
+        try {
+          // Call API check-token
+          const res = await axios.get("http://127.0.0.1:8000/api/check-token", {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+
+          if (res.data.status) {
+            // Valid token -> Redirect
+            localStorage.setItem("auth_user", JSON.stringify(res.data.user));
+            const role = res.data.user.idChucVu;
+            redirectByRole(role);
+          } else {
+            // Invalid -> Clear
+            localStorage.removeItem("auth_token");
+          }
+        } catch (error) {
+          console.error("Token invalid:", error);
+          localStorage.removeItem("auth_token");
+        }
+      }
+    };
+    checkToken();
+  }, []);
 
   const updateField = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const [exitOpen, setExitOpen] = useState(false);
-  const [toast, setToast] = useState({ show: false, message: "" });
-
-  const handleExitConfirm = () => {
-    setExitOpen(false);
-    setToast({ show: true, message: "Exited to home page." });
-
-    setTimeout(() => {
-      window.location.href = "/";
-    }, 700);
-  };
-
-
-
   // -----------------------------
-  // VALIDATION
+  // 2. MAIN LOGIN HANDLER
   // -----------------------------
-  const validate = () => {
-    const newErrors = {};
+  const handleLogin = async (e) => {
+    if (e) e.preventDefault(); // Handle form submit or button click
 
-    if (!form.identifier.trim()) {
-      newErrors.identifier = "Email or phone number is required.";
-    } else {
-      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const phonePattern = /^[0-9]{8,15}$/;
-      const isEmail = emailPattern.test(form.identifier);
-      const isPhone = phonePattern.test(form.identifier);
-
-      if (!isEmail && !isPhone) {
-        newErrors.identifier = "Enter a valid email or phone number.";
-      }
+    if (!form.email || !form.password) {
+      showToast("Please enter both email and password.", "error");
+      return;
     }
 
-    if (!form.password.trim()) {
-      newErrors.password = "Password is required.";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  // -----------------------------
-  // SUBMIT HANDLER WITH LOADING
-  // -----------------------------
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!validate()) return;
-
-    setLoading(true); // 🚀 Start loading
+    setLoading(true);
 
     try {
-      // Simulate backend call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const res = await axios.post("http://127.0.0.1:8000/api/dang-nhap", form);
 
-      console.log("Login submitted:", form);
+      if (!res.data.status) {
+        showToast("Login failed. Please check your credentials.", "error");
+        return;
+      }
 
-      // TODO: integrate backend login
+      // Success
+      localStorage.setItem("auth_token", res.data.token);
+      showToast("Login successful!", "success");
+
+      const role = res.data.user.idChucVu;
+
+      setTimeout(() => {
+        redirectByRole(role);
+      }, 500);
+
     } catch (err) {
-      console.error("Login error:", err);
+      console.error("Login Error:", err);
+      const errorMsg = err.message || "Unknown error occurred";
+      showToast(`Error: ${errorMsg}`, "error");
     } finally {
-      setLoading(false); // Stop loading
+      setLoading(false);
     }
   };
 
-  // SEPARATE ROLE 
   const redirectByRole = (role) => {
-  switch (role) {
-    case "manager":
-      window.location.href = "/manager/dashboard";
-      break;
-    case "support":
-      window.location.href = "/support/dashboard";
-      break;
-    case "trainer":
-      window.location.href = "/personal-trainer/dashboard";
-      break;
-    default:
-      window.location.href = "/member/dashboard";
-  }
-};
+    const roleId = parseInt(role);
+    if (roleId === 1) router.push("/manager/dashboard");
+    else if (roleId === 2) router.push("/support/dashboard");
+    else if (roleId === 3) router.push("/personal_trainer/dashboard");
+    else router.push("/member/dashboard");
+  };
 
+  const showToast = (message, type) => {
+    setToast({ show: true, message, type });
+  };
 
   return (
     <div className="bg-white w-full max-w-md p-8 rounded-xl shadow-[0_2px_8px_rgba(0,10,8,0.15)] border border-borderColor-light">
@@ -109,40 +120,42 @@ export default function LoginPage() {
         Login
       </h1>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleLogin} className="space-y-4">
 
-        {/* Email or Phone */}
+        {/* Email */}
         <div>
           <input
             type="text"
-            placeholder="Email or Phone Number"
-            value={form.identifier}
-            onChange={(e) => updateField("identifier", e.target.value)}
+            placeholder="Email"
+            value={form.email}
+            onChange={(e) => updateField("email", e.target.value)}
             disabled={loading}
-            className={`w-full p-3 border rounded-lg bg-form-bg text-form-text focus:ring-2 focus:ring-form-focus 
-              ${errors.identifier ? "border-notify-errorText" : "border-form-border"}
+            className={`w-full p-3 border rounded-lg bg-form-bg text-form-text focus:ring-2 focus:ring-form-focus border-form-border
               ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
+            style={{ borderRadius: "90px" }}
           />
-          {errors.identifier && (
-            <p className="text-notify-errorText text-sm mt-1">{errors.identifier}</p>
-          )}
         </div>
 
         {/* Password */}
-        <div>
+        <div className="relative">
           <input
-            type="password"
+            type={showPassword ? "text" : "password"}
             placeholder="Password"
             value={form.password}
             onChange={(e) => updateField("password", e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleLogin()}
             disabled={loading}
-            className={`w-full p-3 border rounded-lg bg-form-bg text-form-text focus:ring-2 focus:ring-form-focus 
-              ${errors.password ? "border-notify-errorText" : "border-form-border"}
+            className={`w-full p-3 border rounded-lg bg-form-bg text-form-text focus:ring-2 focus:ring-form-focus border-form-border pr-10
               ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
+            style={{ borderRadius: "90px" }}
           />
-          {errors.password && (
-            <p className="text-notify-errorText text-sm mt-1">{errors.password}</p>
-          )}
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+          >
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
         </div>
 
         {/* Login Button */}
@@ -153,6 +166,9 @@ export default function LoginPage() {
             bg-btnPrimary hover:bg-btnPrimary-hover
             flex items-center justify-center gap-2
             ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
+          style={{ backgroundColor: "#8d9cbcff", borderRadius: "100px", color: "#ffffff" }}
+          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#5c76ab")}
+          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#3b5998")}
         >
           {loading && (
             <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
@@ -160,8 +176,6 @@ export default function LoginPage() {
           {loading ? "Processing..." : "Login"}
         </button>
       </form>
-
-      
 
       {/* Forgot Password */}
       <div className="text-center mt-4">
@@ -179,24 +193,17 @@ export default function LoginPage() {
       </p>
 
       {/* Back to Home */}
-      <p
-        onClick={() => setExitOpen(true)}
-        className="text-center mt-3 text-accent underline cursor-pointer"
-      >
-        ← Back to Home
-      </p>
-
-      <ExitModal
-        open={exitOpen}
-        onClose={() => setExitOpen(false)}
-        onConfirm={handleExitConfirm}
-      />
+      <div className="text-center mt-3">
+        <Link href="/" className="text-accent underline cursor-pointer">
+          ← Back to Home
+        </Link>
+      </div>
 
       <Toast
         show={toast.show}
         message={toast.message}
         onClose={() => setToast({ show: false, message: "" })}
       />
-    </div>
+    </div >
   );
 }

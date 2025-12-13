@@ -23,7 +23,7 @@ export default function ProtectedRoute({ children }) {
         return;
       }
 
-      const token = localStorage.getItem("auth_token") || localStorage.getItem("token");
+      const token = localStorage.getItem("auth_token");
 
       if (!token) {
         router.push("/auth/login");
@@ -34,7 +34,8 @@ export default function ProtectedRoute({ children }) {
         const res = await authApi.checkToken(token);
 
         if (res.data.status) {
-          const role = res.data.user.id_chuc_vu;
+          localStorage.setItem("auth_user", JSON.stringify(res.data.user));
+          const role = res.data.user.idChucVu;
           const path = pathname;
 
           // Checking Database Seeder: 1=Admin, 2=Staff, 3=PT, 4=Member
@@ -44,50 +45,78 @@ export default function ProtectedRoute({ children }) {
           const isMember = role === 4;
 
           if (isAdmin) {
-            if (path.startsWith("/manager")) {
-              setIsAuthenticated(true);
-            } else {
-              router.push("/manager/dashboard");
-            }
+            // ... logic kept same but omitting for brevity if I could, but I must provide full replacement or valid chunk.
+            // Re-implementing logic to ensure correctness.
+            if (path.startsWith("/manager")) setIsAuthenticated(true);
+            else router.push("/manager/dashboard");
           } else if (isStaff) {
-            if (path.startsWith("/support")) {
-              setIsAuthenticated(true);
-            } else {
-              router.push("/support/dashboard");
-            }
+            if (path.startsWith("/support")) setIsAuthenticated(true);
+            else router.push("/support/dashboard");
           } else if (isPT) {
-            if (path.startsWith("/personal_trainer")) {
-              setIsAuthenticated(true);
-            } else {
-              router.push("/personal-trainer/dashboard");
-            }
+            if (path.startsWith("/personal_trainer")) setIsAuthenticated(true);
+            else router.push("/personal-trainer/dashboard");
           } else if (isMember) {
-            if (!path.startsWith("/manager") && !path.startsWith("/support") && !path.startsWith("/personal_trainer")) {
-              setIsAuthenticated(true);
-            } else {
-              router.push("/dashboard");
-            }
+            if (!path.startsWith("/manager") && !path.startsWith("/support") && !path.startsWith("/personal_trainer")) setIsAuthenticated(true);
+            else router.push("/member/dashboard");
           } else {
-            localStorage.removeItem("auth_token");
-            localStorage.removeItem("auth_user");
-            router.push("/auth/login");
+            handleLogout();
           }
         } else {
-          localStorage.removeItem("auth_token");
-          localStorage.removeItem("auth_user");
-          router.push("/auth/login");
+          handleLogout();
         }
       } catch (err) {
         console.error(err);
-        localStorage.removeItem("auth_token");
-        localStorage.removeItem("auth_user");
-        router.push("/auth/login");
+        handleLogout();
       } finally {
         setLoading(false);
       }
     };
 
+    const handleLogout = () => {
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("auth_user");
+      router.push("/auth/login");
+    };
+
+    // ------------------------------------
+    // INACTIVITY TIMEOUT (15 Minutes)
+    // ------------------------------------
+    let inactivityTimer;
+
+    const resetTimer = () => {
+      if (inactivityTimer) clearTimeout(inactivityTimer);
+
+      inactivityTimer = setTimeout(() => {
+        // Timeout reached -> Logout
+        console.log("Session expired due to inactivity.");
+        // Optional: Toast "Session expired" could be added here if we had access to toast context globally.
+        // For now, just force logout.
+        handleLogout();
+        // Maybe redirect with a query param ?error=timeout to show toast on login page?
+        router.push("/auth/login?reason=timeout");
+      }, 15 * 60 * 1000); // 15 minutes
+    };
+
+    // Events to track
+    window.addEventListener("mousemove", resetTimer);
+    window.addEventListener("keydown", resetTimer);
+    window.addEventListener("scroll", resetTimer);
+    window.addEventListener("click", resetTimer);
+
+    // Initial start
+    resetTimer();
+
+    // Check auth immediately
     checkAuth();
+
+    // Cleanup
+    return () => {
+      if (inactivityTimer) clearTimeout(inactivityTimer);
+      window.removeEventListener("mousemove", resetTimer);
+      window.removeEventListener("keydown", resetTimer);
+      window.removeEventListener("scroll", resetTimer);
+      window.removeEventListener("click", resetTimer);
+    };
   }, [router, pathname]);
 
   if (loading) {

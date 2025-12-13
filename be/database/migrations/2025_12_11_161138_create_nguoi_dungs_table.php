@@ -19,7 +19,8 @@ return new class extends Migration
             $table->string('password_hash', 255);
             $table->string('gender', 20)->nullable();
             $table->date('date_of_birth')->nullable();
-            $table->string('status', 20); // Check(active/ inactive/ locked) - logic handled in app or strict check constraint if needed
+            $table->enum('status', ['active', 'inactive', 'locked'])->default('inactive');
+            $table->string('hash_active', 255)->nullable();
             $table->timestamps(); // created_at, updated_at
         });
     }

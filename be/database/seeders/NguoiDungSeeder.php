@@ -27,7 +27,8 @@ class NguoiDungSeeder extends Seeder
                 'password_hash' => '123456', // Will be hashed by mutator
                 'gender' => $isMale ? 'Nam' : 'Nữ',
                 'date_of_birth' => $faker->date('Y-m-d', '2005-01-01'),
-                'status' => 'active',
+                'status' => $faker->randomElement(['active', 'inactive', 'locked']),
+                'hash_active' => null,
             ]);
         }
     }
