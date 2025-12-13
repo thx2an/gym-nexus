@@ -43,6 +43,8 @@ class DatabaseSeeder extends Seeder
             PhanTichRuiRoSeeder::class,
             TicketNhanVienSeeder::class,
             TinNhanTicketSeeder::class,
+            PhienTinNhanSeeder::class,
+            NoiDungTinNhanSeeder::class,
         ]);
     }
 }
