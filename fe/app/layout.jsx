@@ -1,9 +1,7 @@
-"use client";
-
 import React from 'react';
-import Navbar from '@/components/common/Navbar';
 import localFont from 'next/font/local';
 import './globals.css';
+import Providers from './providers';
 
 const obised = localFont({
   src: '../public/fonts/Obised.ttf',
@@ -11,11 +9,18 @@ const obised = localFont({
   variable: '--font-obised',
 });
 
-export default function MemberLayout({ children }) {
+export const metadata = {
+  title: 'Gym Nexus',
+  description: 'Premium Gym Management System',
+};
+
+export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${obised.variable}`}>
       <body className="bg-base-primaryBg text-text-strong font-obised">
-        {children}
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

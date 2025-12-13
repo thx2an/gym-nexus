@@ -17,7 +17,7 @@ export default function MemberDashboardPage() {
                     <p className="text-text-medium mt-1">Wishing you an energetic training day.</p>
                 </div>
                 <div className="mt-4 md:mt-0 text-sm font-medium text-text-subtle bg-bg-subtle px-4 py-2 rounded-full border border-borderColor-light">
-                    Thursday, December 12, 2025
+                    {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                 </div>
             </div>
 

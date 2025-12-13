@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Hash;
+use Laravel\Sanctum\HasApiTokens;
 
-class NguoiDung extends Model
+class NguoiDung extends Authenticatable
 {
+    use HasApiTokens, Notifiable;
+
     protected $table = 'nguoi_dungs';
     protected $primaryKey = 'user_id';
 
@@ -43,6 +47,11 @@ class NguoiDung extends Model
         'date_of_birth' => 'date',
     ];
 
+
+    public function getAuthPassword()
+    {
+        return $this->password_hash;
+    }
     /**
      * Set the user's password hash.
      *

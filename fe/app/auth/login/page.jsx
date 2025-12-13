@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import ExitModal from "@/components/common/ExitModal";
 import Toast from "@/components/common/Toast";
+import apiClient from "@/lib/apiClient";
+
 
 
 export default function LoginPage() {
@@ -65,24 +67,32 @@ export default function LoginPage() {
   // -----------------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!validate()) return;
 
-    setLoading(true); // 🚀 Start loading
+    setLoading(true);
 
     try {
-      // Simulate backend call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const res = await apiClient.post("/auth/login", {
+        identifier: form.identifier,
+        password: form.password,
+      });
 
-      console.log("Login submitted:", form);
+      // lưu token
+      localStorage.setItem("gn_token", res.data.token);
 
-      // TODO: integrate backend login
+      // redirect member dashboard
+      window.location.href = "/dashboard";
     } catch (err) {
       console.error("Login error:", err);
+
+      // nếu BE có message thì show lên toast
+      const msg = err?.response?.data?.message || "Login failed";
+      setToast?.({ show: true, message: msg }); // nếu bạn có toast state
     } finally {
-      setLoading(false); // Stop loading
+      setLoading(false);
     }
   };
+
 
   // SEPARATE ROLE 
   const redirectByRole = (role) => {
