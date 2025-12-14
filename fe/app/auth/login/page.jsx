@@ -1,183 +1,215 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-import axios from "axios";
-import { Eye, EyeOff } from "lucide-react";
-
-import Toast from "@/components/common/Toast";
+import { useState } from "react";
 
 export default function LoginPage() {
-  const router = useRouter(); // Initialize router
   const [form, setForm] = useState({
-    email: "",
+    identifier: "",
     password: "",
   });
-  const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
 
-  // -----------------------------
-  // 1. TOKEN CHECK ON MOUNT
-  // -----------------------------
-  useEffect(() => {
-    // Check for timeout query param
-    const searchParams = new URLSearchParams(window.location.search);
-    if (searchParams.get("reason") === "timeout") {
-      setToast({ show: true, message: "Session expired due to inactivity.", type: "error" });
-      // Clean up URL
-      router.replace("/auth/login");
-    }
-  }, []);
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [showExitDialog, setShowExitDialog] = useState(false);
 
   const updateField = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  // -----------------------------
-  // 2. MAIN LOGIN HANDLER
-  // -----------------------------
-  const handleLogin = async (e) => {
-    if (e) e.preventDefault(); // Handle form submit or button click
+  const validate = () => {
+    const newErrors = {};
 
-    if (!form.email || !form.password) {
-      showToast("Please enter both email and password.", "error");
-      return;
+    if (!form.identifier.trim()) {
+      newErrors.identifier = "Email or phone number is required.";
     }
+
+    if (!form.password.trim()) {
+      newErrors.password = "Password is required.";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!validate()) return;
 
     setLoading(true);
-
-    try {
-      const res = await axios.post("http://127.0.0.1:8000/api/dang-nhap", form);
-
-      if (!res.data.status) {
-        showToast("Login failed. Please check your credentials.", "error");
-        return;
-      }
-
-      // Success
-      localStorage.setItem("auth_token", res.data.token);
-      showToast("Login successful!", "success");
-
-      const role = res.data.user.idChucVu;
-
-      setTimeout(() => {
-        redirectByRole(role);
-      }, 500);
-
-    } catch (err) {
-      console.error("Login Error:", err);
-      const errorMsg = err.message || "Unknown error occurred";
-      showToast(`Error: ${errorMsg}`, "error");
-    } finally {
+    setTimeout(() => {
+      console.log("Login submitted:", form);
       setLoading(false);
-    }
-  };
-
-  const redirectByRole = (role) => {
-    const roleId = parseInt(role);
-    if (roleId === 1) router.push("/manager/dashboard");
-    else if (roleId === 2) router.push("/support/dashboard");
-    else if (roleId === 3) router.push("/personal_trainer/dashboard");
-    else router.push("/dashboard");
-  };
-
-  const showToast = (message, type) => {
-    setToast({ show: true, message, type });
+    }, 1200);
   };
 
   return (
-    <div className="bg-white w-full max-w-md p-8 rounded-xl shadow-[0_2px_8px_rgba(0,10,8,0.15)] border border-borderColor-light">
+    <div className="auth-bg flex items-center justify-center px-6 font-['Obised'] text-[#f0f0f0] relative">
 
-      <h1 className="text-3xl font-semibold text-text-strong text-center mb-6">
-        Login
-      </h1>
+      {/* Glow Effects */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-40 -left-40 w-[420px] h-[420px] rounded-full bg-white/10 blur-[120px]" />
+        <div className="absolute bottom-0 -right-40 w-[420px] h-[420px] rounded-full bg-white/10 blur-[120px]" />
+      </div>
 
-      <form onSubmit={handleLogin} className="space-y-4">
+      {/* Login Card */}
+      <div
+        className="w-full max-w-2xl p-10 rounded-2xl border relative z-10"
+        style={{
+          backgroundColor: "rgba(20,20,20,0.85)",
+          borderColor: "rgba(255,255,255,0.08)",
+          backdropFilter: "blur(12px)",
+          boxShadow: "0 40px 80px rgba(0,0,0,0.6)",
+        }}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
 
-        {/* Email */}
-        <div>
-          <input
-            type="text"
-            placeholder="Email"
-            value={form.email}
-            onChange={(e) => updateField("email", e.target.value)}
-            disabled={loading}
-            className={`w-full p-3 border rounded-lg bg-form-bg text-form-text focus:ring-2 focus:ring-form-focus border-form-border
-              ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
-            style={{ borderRadius: "90px" }}
-          />
+          {/* Left */}
+          <div className="flex flex-col items-center justify-center text-center">
+            <div className="w-24 h-24 mb-6 rounded-xl overflow-hidden bg-white shadow-lg">
+              <img
+                src="/uploads/gymlogo.png"
+                alt="Gym Logo"
+                className="w-full h-full object-cover"
+              />
+            </div>
+
+            <h1 className="text-5xl font-black mb-4 tracking-tight">
+              LOGIN
+            </h1>
+            <p className="text-lg opacity-70">
+              Welcome back to your fitness journey
+            </p>
+          </div>
+
+          {/* Right */}
+          <form onSubmit={handleSubmit} className="space-y-5">
+
+            <div>
+              <input
+                type="text"
+                placeholder="Email or Phone Number"
+                value={form.identifier}
+                onChange={(e) => updateField("identifier", e.target.value)}
+                disabled={loading}
+                className="w-full p-4 rounded-lg outline-none focus:ring-2"
+                style={{
+                  backgroundColor: "#282828",
+                  borderColor: errors.identifier ? "#ff4444" : "#282828",
+                  color: "#f0f0f0",
+                }}
+              />
+              {errors.identifier && (
+                <p className="text-red-400 text-sm mt-2">
+                  {errors.identifier}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <input
+                type="password"
+                placeholder="Password"
+                value={form.password}
+                onChange={(e) => updateField("password", e.target.value)}
+                disabled={loading}
+                className="w-full p-4 rounded-lg outline-none focus:ring-2"
+                style={{
+                  backgroundColor: "#282828",
+                  borderColor: errors.password ? "#ff4444" : "#282828",
+                  color: "#f0f0f0",
+                }}
+              />
+              {errors.password && (
+                <p className="text-red-400 text-sm mt-2">
+                  {errors.password}
+                </p>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-4 rounded-lg font-bold tracking-widest transition hover:scale-105"
+              style={{
+                backgroundColor: "#f0f0f0",
+                color: "#000014",
+                opacity: loading ? 0.7 : 1,
+              }}
+            >
+              {loading ? "PROCESSING..." : "LOGIN"}
+            </button>
+
+            <div className="text-center opacity-80">
+              <a href="/auth/forgot-password">Forgot password?</a>
+            </div>
+
+            <p className="text-center opacity-80">
+              Don&apos;t have an account?{" "}
+              <a href="/auth/register" className="font-bold">
+                Register
+              </a>
+            </p>
+
+            {/* Back to Home */}
+            <p
+              className="text-center mt-5 underline cursor-pointer opacity-80 hover:opacity-100"
+              onClick={() => setShowExitDialog(true)}
+            >
+              ← Back to Home
+            </p>
+          </form>
         </div>
+      </div>
 
-        {/* Password */}
-        <div className="relative">
-          <input
-            type={showPassword ? "text" : "password"}
-            placeholder="Password"
-            value={form.password}
-            onChange={(e) => updateField("password", e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-            disabled={loading}
-            className={`w-full p-3 border rounded-lg bg-form-bg text-form-text focus:ring-2 focus:ring-form-focus border-form-border pr-10
-              ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
-            style={{ borderRadius: "90px" }}
+      {/* EXIT CONFIRM DIALOG */}
+      {showExitDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Overlay */}
+          <div
+            className="absolute inset-0 bg-black/60"
+            onClick={() => setShowExitDialog(false)}
           />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+
+          {/* Dialog */}
+          <div
+            className="relative z-10 w-full max-w-sm rounded-xl p-6 border"
+            style={{
+              backgroundColor: "#141414",
+              borderColor: "rgba(255,255,255,0.12)",
+              boxShadow: "0 30px 80px rgba(0,0,0,0.8)",
+            }}
           >
-            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-          </button>
+            <h3 className="text-lg font-bold mb-3 text-[#f0f0f0]">
+              Exit confirmation
+            </h3>
+
+            <p className="text-sm opacity-80 mb-6">
+              Do you want to exit and return to Home page?
+            </p>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowExitDialog(false)}
+                className="px-4 py-2 rounded-lg border border-white/20 text-white hover:bg-white/10 transition"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={() => (window.location.href = "/")}
+                className="px-5 py-2 rounded-lg font-bold transition"
+                style={{
+                  backgroundColor: "#f0f0f0",
+                  color: "#000014",
+                }}
+              >
+                Exit
+              </button>
+            </div>
+          </div>
         </div>
+      )}
 
-        {/* Login Button */}
-        <button
-          type="submit"
-          disabled={loading}
-          className={`w-full py-3 rounded-lg text-btnPrimary-text transition 
-            bg-btnPrimary hover:bg-btnPrimary-hover
-            flex items-center justify-center gap-2
-            ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
-          style={{ backgroundColor: "#8d9cbcff", borderRadius: "100px", color: "#ffffff" }}
-          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#5c76ab")}
-          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#3b5998")}
-        >
-          {loading && (
-            <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
-          )}
-          {loading ? "Processing..." : "Login"}
-        </button>
-      </form>
-
-      {/* Forgot Password */}
-      <div className="text-center mt-4">
-        <Link href="/auth/forgot-password" className="text-accent underline">
-          Forgot password?
-        </Link>
-      </div>
-
-      {/* Register */}
-      <p className="text-center mt-4 text-text-medium">
-        Don’t have an account?{" "}
-        <Link href="/auth/register" className="text-accent font-semibold">
-          Register
-        </Link>
-      </p>
-
-      {/* Back to Home */}
-      <div className="text-center mt-3">
-        <Link href="/" className="text-accent underline cursor-pointer">
-          ← Back to Home
-        </Link>
-      </div>
-
-      <Toast
-        show={toast.show}
-        message={toast.message}
-        onClose={() => setToast({ show: false, message: "" })}
-      />
-    </div >
+    </div>
   );
 }
