@@ -1,20 +1,26 @@
 import "./globals.css";
 import Providers from "./providers";
-import ProtectedRoute from "@/components/common/ProtectedRoute";
 
 export const metadata = {
   title: "Gym Nexus",
-  description: "Gym Management System with AI-powered tools"
+  description: "Gym Management System with AI-powered tools",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="bg-base-primarySurface text-text-strong">
+      <body
+        className="
+          min-h-screen
+          text-[#f0f0f0]
+          bg-gradient-to-br
+          from-[#0f0c29]
+          via-[#1a1a2e]
+          to-[#16213e]
+        "
+      >
         <Providers>
-          <ProtectedRoute>
-            {children}
-          </ProtectedRoute>
+          {children}
         </Providers>
       </body>
     </html>

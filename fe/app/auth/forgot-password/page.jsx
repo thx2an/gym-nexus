@@ -2,131 +2,125 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import ExitModal from "@/components/common/ExitModal";
-import Toast from "@/components/common/Toast";
 
 export default function ForgotPasswordPage() {
-  const [identifier, setIdentifier] = useState(""); // email or phone
+  const [identifier, setIdentifier] = useState("");
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [showExitDialog, setShowExitDialog] = useState(false);
 
   const validate = () => {
     const newErrors = {};
-
     if (!identifier.trim()) {
       newErrors.identifier = "Email or phone number is required.";
-    } else {
-      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const phonePattern = /^[0-9]{8,15}$/;
-
-      const isEmail = emailPattern.test(identifier);
-      const isPhone = phonePattern.test(identifier);
-
-      if (!isEmail && !isPhone) {
-        newErrors.identifier = "Enter a valid email or phone number.";
-      }
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     if (!validate()) return;
-
-    // TODO: call backend API: POST /auth/forgot-password
-    console.log("Forgot password for:", identifier);
+    console.log("Forgot password:", identifier);
     setSubmitted(true);
   };
 
-  // Add the EXIT modal state and handler HERE
-  const [exitOpen, setExitOpen] = useState(false);
-  const [toast, setToast] = useState({ show: false, message: "" });
-
-  const handleExitConfirm = () => {
-    setExitOpen(false);
-    setToast({ show: true, message: "Exited to home page." });
-
-    setTimeout(() => {
-      window.location.href = "/";
-    }, 700);
-  };
-
   return (
-    <div className="bg-white w-full max-w-md p-8 rounded-xl shadow-[0_2px_8px_rgba(0,10,8,0.15)] border border-borderColor-light">
+    <div className="auth-bg flex items-center justify-center px-6 font-['Obised'] text-[#f0f0f0] relative">
+      <div
+        className="w-full max-w-md p-8 rounded-2xl border relative z-10"
+        style={{
+          backgroundColor: "rgba(20,20,20,0.85)",
+          borderColor: "rgba(255,255,255,0.08)",
+          backdropFilter: "blur(12px)",
+          boxShadow: "0 40px 80px rgba(0,0,0,0.6)",
+        }}
+      >
+        <h1 className="text-2xl font-bold text-center mb-2">
+          Reset Password
+        </h1>
 
-      <h1 className="text-2xl font-semibold text-text-strong text-center mb-4">
-        Reset Password
-      </h1>
+        <p className="text-sm opacity-70 text-center mb-6">
+          Enter your email or phone number to receive reset instructions.
+        </p>
 
-      <p className="text-text-medium text-center mb-6">
-        Enter your email or phone number and we’ll send you a reset link or code.
-      </p>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Email or Phone */}
-        <div>
+        <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="text"
             placeholder="Email or Phone Number"
             value={identifier}
-            onChange={(e) => {
-              setIdentifier(e.target.value);
-              if (errors.identifier) {
-                setErrors((prev) => ({ ...prev, identifier: undefined }));
-              }
-            }}
-            className={`w-full p-3 border rounded-lg bg-form-bg text-form-text focus:ring-2 focus:ring-form-focus
-              ${errors.identifier ? "border-notify-errorText" : "border-form-border"}`}
+            onChange={(e) => setIdentifier(e.target.value)}
+            className="w-full p-3 rounded-lg bg-[#282828] outline-none text-white"
           />
           {errors.identifier && (
-            <p className="text-notify-errorText text-sm mt-1">
-              {errors.identifier}
-            </p>
+            <p className="text-red-400 text-xs">{errors.identifier}</p>
           )}
+
+          <button
+            type="submit"
+            className="w-full py-3 rounded-lg font-bold"
+            style={{ backgroundColor: "#f0f0f0", color: "#000014" }}
+          >
+            Send Reset Instructions
+          </button>
+        </form>
+
+        {submitted && (
+          <div className="mt-4 text-sm opacity-80">
+            If an account exists, reset instructions will be sent.
+          </div>
+        )}
+
+        <div className="mt-6 space-y-3 text-center">
+          <Link href="/auth/login" className="underline">
+            Back to Login
+          </Link>
+
+          <p
+            className="underline cursor-pointer opacity-80 hover:opacity-100"
+            onClick={() => setShowExitDialog(true)}
+          >
+            ← Back to Home
+          </p>
         </div>
+      </div>
 
-        <button
-          type="submit"
-          className="w-full py-3 rounded-lg bg-btnPrimary text-btnPrimary-text hover:bg-btnPrimary-hover transition"
-        >
-          Send Reset Instructions
-        </button>
-      </form>
+      {showExitDialog && <ExitDialog onClose={() => setShowExitDialog(false)} />}
+    </div>
+  );
+}
 
-      {submitted && !errors.identifier && (
-        <div className="mt-4 p-3 rounded-lg bg-notify-infoBg text-notify-infoText text-sm">
-          If an account exists for that email or phone number, you’ll receive reset instructions shortly.
-        </div>
-      )}
-
-      <p className="text-center mt-4">
-        <Link href="/auth/login" className="text-accent underline">
-          Back to Login
-        </Link>
-      </p>
-
-      {/* Back to Home */}
-      <p
-      onClick={() => setExitOpen(true)}
-      className="text-center mt-3 text-accent underline cursor-pointer"
+/* ========== EXIT DIALOG ========== */
+function ExitDialog({ onClose }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+      <div
+        className="relative z-10 w-full max-w-sm rounded-xl p-6 border"
+        style={{
+          backgroundColor: "#141414",
+          borderColor: "rgba(255,255,255,0.12)",
+          boxShadow: "0 30px 80px rgba(0,0,0,0.8)",
+        }}
       >
-      ← Back to Home
-      </p>
+        <h3 className="text-lg font-bold mb-3">Exit confirmation</h3>
+        <p className="text-sm opacity-80 mb-6">
+          Do you want to exit and return to Home page?
+        </p>
 
-      <ExitModal 
-      open={exitOpen}
-      onClose={() => setExitOpen(false)}
-      onConfirm={handleExitConfirm}
-      />
-
-      <Toast 
-        show={toast.show}
-        message={toast.message}
-        onClose={() => setToast({ show: false, message: "" })}
-      />
+        <div className="flex justify-end gap-3">
+          <button onClick={onClose} className="px-4 py-2 rounded-lg border border-white/20 hover:bg-white/10">
+            Cancel
+          </button>
+          <button
+            onClick={() => (window.location.href = "/")}
+            className="px-5 py-2 rounded-lg font-bold"
+            style={{ backgroundColor: "#f0f0f0", color: "#000014" }}
+          >
+            Exit
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
