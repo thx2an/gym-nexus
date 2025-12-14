@@ -120,7 +120,19 @@ class NguoiDungController extends Controller
         $view = "kichHoatTK";
         $noi_dung['full_name'] = $user->full_name;
         $noi_dung['link'] = "http://localhost:5173/kich-hoat/" . $key;
-        Mail::to($request->email)->send(new MasterMail($tieu_de, $view, $noi_dung));
+        try {
+            Mail::to($request->email)->send(new MasterMail($tieu_de, $view, $noi_dung));
+        } catch (\Throwable $e) {
+            // Nếu gửi mail thất bại, rollback user để tránh trùng email/phone khi đăng ký lại
+            $user->vaiTros()->detach();
+            $user->delete();
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Cant send a verify email. Please try again!',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
 
         return response()->json([
             'status' => true,
