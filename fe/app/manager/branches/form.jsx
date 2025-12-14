@@ -18,8 +18,8 @@ export default function BranchForm() {
   };
 
   return (
-    <div className="max-w-xl bg-white border border-borderColor-light p-6 rounded-lg shadow-sm">
-      <h1 className="text-2xl font-bold mb-4 text-text-strong">
+    <div className="max-w-2xl bg-[#1A1F26] rounded-2xl p-6 border border-[#2A2F38] shadow-xl">
+      <h1 className="text-xl font-semibold text-white mb-6">
         {isEdit ? "Edit Branch" : "Add New Branch"}
       </h1>
 
@@ -29,7 +29,7 @@ export default function BranchForm() {
           placeholder="Branch Name"
           value={form.name}
           onChange={(e) => updateField("name", e.target.value)}
-          className="w-full border p-3 rounded-lg"
+          className="w-full rounded-lg px-3 py-2.5 bg-[#0F141B] border border-[#2A2F38] text-sm text-white focus:outline-none focus:border-[#3B82F6]"
         />
 
         <input
@@ -37,7 +37,7 @@ export default function BranchForm() {
           placeholder="Address"
           value={form.address}
           onChange={(e) => updateField("address", e.target.value)}
-          className="w-full border p-3 rounded-lg"
+          className="w-full rounded-lg px-3 py-2.5 bg-[#0F141B] border border-[#2A2F38] text-sm text-white focus:outline-none focus:border-[#3B82F6]"
         />
 
         <input
@@ -45,10 +45,12 @@ export default function BranchForm() {
           placeholder="Phone"
           value={form.phone}
           onChange={(e) => updateField("phone", e.target.value)}
-          className="w-full border p-3 rounded-lg"
+          className="w-full rounded-lg px-3 py-2.5 bg-[#0F141B] border border-[#2A2F38] text-sm text-white focus:outline-none focus:border-[#3B82F6]"
         />
 
-        <button className="w-full bg-accent text-white py-3 rounded-lg hover:bg-btnPrimary-hover">
+        <button
+          className="w-full py-2.5 rounded-lg font-semibold bg-[#FACC15] text-black hover:opacity-90 transition"
+        >
           {isEdit ? "Update Branch" : "Create Branch"}
         </button>
       </div>

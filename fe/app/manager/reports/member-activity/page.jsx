@@ -14,10 +14,22 @@ export default function MemberActivityReportPage() {
   ];
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-6 text-text-strong">Member Activity</h1>
+    <div className="space-y-6">
+      {/* ================= HEADER ================= */}
+      <div>
+        <h1 className="text-2xl font-bold text-white">
+          Member Activity
+        </h1>
+        <p className="text-sm text-gray-400">
+          Overview of member engagement and actions
+        </p>
+      </div>
 
-      <ReportFilterBar filters={filters} setFilters={setFilters} />
+      <ReportFilterBar
+        filters={filters}
+        setFilters={setFilters}
+      />
+
       <ReportChart data={mockData} />
     </div>
   );
