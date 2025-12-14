@@ -13,10 +13,10 @@ class VaiTroSeeder extends Seeder
     public function run(): void
     {
         $roles = [
-            ['code' => 'ADMIN', 'name' => 'Quản trị viên'],
-            ['code' => 'STAFF', 'name' => 'Nhân viên'],
-            ['code' => 'PT', 'name' => 'Huấn luyện viên'],
-            ['code' => 'MEMBER', 'name' => 'Hội viên'],
+            ['code' => 'Manager', 'name' => 'Manager'],
+            ['code' => 'Staff', 'name' => 'Staff'],
+            ['code' => 'PT', 'name' => 'PT'],
+            ['code' => 'Member', 'name' => 'Member'],
         ];
 
         foreach ($roles as $role) {

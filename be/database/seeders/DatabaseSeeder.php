@@ -40,6 +40,14 @@ class DatabaseSeeder extends Seeder
             PlanDinhDuongAISeeder::class,
             PhienPhanTichTuTheSeeder::class,
             PhanHoiTuTheSeeder::class,
+            PhanTichRuiRoSeeder::class,
+            TicketNhanVienSeeder::class,
+            TinNhanTicketSeeder::class,
+            PhienTinNhanSeeder::class,
+            NoiDungTinNhanSeeder::class,
+            KnowledgeBaseArticlesSeeder::class,
+            BaoCaoSeeder::class,
+            AuditLogsSeeder::class,
         ]);
     }
 }
