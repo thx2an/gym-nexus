@@ -16,18 +16,18 @@ class MasterMail extends Mailable
     /**
      * Create a new message instance.
      */
-    public $subjectData; // Rename to avoid conflict with $subject method if any, but envelope handles it.
-    public $viewData;
-    public $data;
+    public $subjectData;
+    public $viewName;
+    public $payload;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($subject, $view, $data)
+    public function __construct($subject, $view, array $data = [])
     {
         $this->subjectData = $subject;
-        $this->viewData = $view;
-        $this->data = $data;
+        $this->viewName = $view;
+        $this->payload = $data;
     }
 
     /**
@@ -46,7 +46,8 @@ class MasterMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.' . $this->viewData, // Controller sends "kichHoatTK", view is at "emails/kichHoatTK"
+            view: 'emails.' . $this->viewName, // Controller sends "kichHoatTK", view is at "emails/kichHoatTK"
+            with: ['data' => $this->payload], // Truyền vào blade dưới biến $data để khớp template hiện tại
         );
     }
 
