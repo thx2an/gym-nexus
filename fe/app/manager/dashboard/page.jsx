@@ -11,20 +11,39 @@ export default function ManagerDashboardPage() {
   ];
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-8 text-text-strong">Manager Dashboard</h1>
+    <div className="space-y-6">
+      {/* ================= HEADER ================= */}
+      <div>
+        <h1 className="text-2xl font-bold text-white">
+          Manager Dashboard
+        </h1>
+        <p className="text-sm text-gray-400">
+          Overview of system performance
+        </p>
+      </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* ================= STATS ================= */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((item, i) => {
           const Icon = item.icon;
+
           return (
             <div
               key={i}
-              className="bg-bg-subtle border border-borderColor-light rounded-lg p-6 shadow-sm"
+              className="bg-[#1A1F26] rounded-2xl p-5 border border-[#2A2F38] shadow-lg hover:shadow-xl transition"
             >
-              <Icon className="w-10 h-10 text-accent mb-3" />
-              <p className="text-text-medium text-sm">{item.label}</p>
-              <p className="text-2xl font-bold">{item.value}</p>
+              <div className="flex items-center gap-4 mb-4">
+                <div className="p-3 rounded-xl bg-[#0F141B] border border-[#2A2F38]">
+                  <Icon className="w-6 h-6 text-blue-400" />
+                </div>
+              </div>
+
+              <p className="text-sm text-gray-400 mb-1">
+                {item.label}
+              </p>
+              <p className="text-2xl font-semibold text-white">
+                {item.value}
+              </p>
             </div>
           );
         })}

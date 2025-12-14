@@ -5,23 +5,42 @@ import Link from "next/link";
 export default function ReportsDashboardPage() {
   const reports = [
     { title: "Revenue Report", href: "/manager/reports/revenue" },
-    { title: "Trainer Performance", href: "/manager/reports/trainer-performance" },
-    { title: "Member Activity Report", href: "/manager/reports/member-activity" },
+    {
+      title: "Trainer Performance",
+      href: "/manager/reports/trainer-performance",
+    },
+    {
+      title: "Member Activity Report",
+      href: "/manager/reports/member-activity",
+    },
   ];
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold text-text-strong mb-8">Reports Center</h1>
+    <div className="space-y-6">
+      {/* ================= HEADER ================= */}
+      <div>
+        <h1 className="text-2xl font-bold text-white">
+          Reports Center
+        </h1>
+        <p className="text-sm text-gray-400">
+          View and analyze system reports
+        </p>
+      </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* ================= REPORT GRID ================= */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {reports.map((r, i) => (
           <Link
             key={i}
             href={r.href}
-            className="bg-white p-6 rounded-lg border border-borderColor-light shadow-sm hover:border-accent transition block"
+            className="bg-[#1A1F26] rounded-2xl p-5 border border-[#2A2F38] shadow-lg hover:shadow-xl transition group"
           >
-            <h2 className="text-xl font-semibold">{r.title}</h2>
-            <p className="text-text-medium mt-1">View report →</p>
+            <h2 className="text-lg font-semibold text-white mb-1 group-hover:underline">
+              {r.title}
+            </h2>
+            <p className="text-sm text-gray-400">
+              View report →
+            </p>
           </Link>
         ))}
       </div>

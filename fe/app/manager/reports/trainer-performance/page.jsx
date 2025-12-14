@@ -14,10 +14,22 @@ export default function TrainerPerformanceReportPage() {
   ];
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-6 text-text-strong">Trainer Performance</h1>
+    <div className="space-y-6">
+      {/* ================= HEADER ================= */}
+      <div>
+        <h1 className="text-2xl font-bold text-white">
+          Trainer Performance
+        </h1>
+        <p className="text-sm text-gray-400">
+          Performance metrics of personal trainers
+        </p>
+      </div>
 
-      <ReportFilterBar filters={filters} setFilters={setFilters} />
+      <ReportFilterBar
+        filters={filters}
+        setFilters={setFilters}
+      />
+
       <ReportChart data={mockData} />
     </div>
   );

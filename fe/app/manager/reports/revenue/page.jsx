@@ -14,10 +14,22 @@ export default function RevenueReportPage() {
   ];
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-6 text-text-strong">Revenue Report</h1>
+    <div className="space-y-6">
+      {/* ================= HEADER ================= */}
+      <div>
+        <h1 className="text-2xl font-bold text-white">
+          Revenue Report
+        </h1>
+        <p className="text-sm text-gray-400">
+          Revenue performance over selected period
+        </p>
+      </div>
 
-      <ReportFilterBar filters={filters} setFilters={setFilters} />
+      <ReportFilterBar
+        filters={filters}
+        setFilters={setFilters}
+      />
+
       <ReportChart data={mockData} />
     </div>
   );
