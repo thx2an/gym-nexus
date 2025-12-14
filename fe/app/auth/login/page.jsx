@@ -29,32 +29,6 @@ export default function LoginPage() {
       // Clean up URL
       router.replace("/auth/login");
     }
-
-    const checkToken = async () => {
-      const token = localStorage.getItem("auth_token");
-      if (token) {
-        try {
-          // Call API check-token
-          const res = await axios.get("http://127.0.0.1:8000/api/check-token", {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-
-          if (res.data.status) {
-            // Valid token -> Redirect
-            localStorage.setItem("auth_user", JSON.stringify(res.data.user));
-            const role = res.data.user.idChucVu;
-            redirectByRole(role);
-          } else {
-            // Invalid -> Clear
-            localStorage.removeItem("auth_token");
-          }
-        } catch (error) {
-          console.error("Token invalid:", error);
-          localStorage.removeItem("auth_token");
-        }
-      }
-    };
-    checkToken();
   }, []);
 
   const updateField = (field, value) => {
@@ -106,7 +80,7 @@ export default function LoginPage() {
     if (roleId === 1) router.push("/manager/dashboard");
     else if (roleId === 2) router.push("/support/dashboard");
     else if (roleId === 3) router.push("/personal_trainer/dashboard");
-    else router.push("/member/dashboard");
+    else router.push("/dashboard");
   };
 
   const showToast = (message, type) => {
