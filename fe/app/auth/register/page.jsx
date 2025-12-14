@@ -5,8 +5,10 @@ import { useState } from "react";
 import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
 import Toast from "@/components/common/Toast";
+import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [form, setForm] = useState({
     full_name: "",
     email: "",
@@ -97,16 +99,9 @@ export default function RegisterPage() {
 
       if (res.data.status) {
         showToast(res.data.message || "Registration successful! Please check your email.", "success");
-        // Optional: Redirect or clear form
-        setForm({
-          full_name: "",
-          email: "",
-          phone: "",
-          gender: "",
-          date_of_birth: "",
-          password: "",
-          confirm_password: ""
-        });
+        // Điều hướng sang trang xác minh email
+        router.push(`/auth/verify-email?email=${encodeURIComponent(form.email)}`);
+        return;
       } else {
         showToast(res.data.message || "Registration failed.", "error");
       }
