@@ -9,6 +9,7 @@ export default function LogoutPage() {
   useEffect(() => {
     // Clear tokens or auth state here
     localStorage.clear();
+    sessionStorage.removeItem("chat_history"); // Clear chat session
     router.push("/auth/login");
   }, [router]);
 

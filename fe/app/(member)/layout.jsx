@@ -18,6 +18,7 @@ import {
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
+import AIChatbot from "@/components/common/AIChatbot"
 
 export default function MemberLayout({ children }) {
   const pathname = usePathname()
@@ -96,8 +97,8 @@ export default function MemberLayout({ children }) {
                       key={item.href}
                       href={item.href}
                       className={`flex items-center gap-3 px-4 py-2.5 rounded-lg font-medium text-sm transition-all ${isActive
-                          ? "bg-[#f0f0f0] text-[#141414]"
-                          : "text-[#a0a0a0] hover:bg-[#282828] hover:text-[#f0f0f0]"
+                        ? "bg-[#f0f0f0] text-[#141414]"
+                        : "text-[#a0a0a0] hover:bg-[#282828] hover:text-[#f0f0f0]"
                         }`}
                       title={isCollapsed ? item.label : undefined}
                     >
@@ -173,6 +174,8 @@ export default function MemberLayout({ children }) {
         {/* Page Content */}
         <main className="flex-1 p-8 bg-[#141414]">{children}</main>
       </div>
+
+      <AIChatbot />
     </div>
   )
 }
