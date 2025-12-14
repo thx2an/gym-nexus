@@ -1,10 +1,6 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
-import ExitModal from "@/components/common/ExitModal";
-import Toast from "@/components/common/Toast";
-
 
 export default function LoginPage() {
   const [form, setForm] = useState({
@@ -13,43 +9,17 @@ export default function LoginPage() {
   });
 
   const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false); // ⭐ NEW STATE
+  const [loading, setLoading] = useState(false);
 
   const updateField = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const [exitOpen, setExitOpen] = useState(false);
-  const [toast, setToast] = useState({ show: false, message: "" });
-
-  const handleExitConfirm = () => {
-    setExitOpen(false);
-    setToast({ show: true, message: "Exited to home page." });
-
-    setTimeout(() => {
-      window.location.href = "/";
-    }, 700);
-  };
-
-
-
-  // -----------------------------
-  // VALIDATION
-  // -----------------------------
   const validate = () => {
     const newErrors = {};
 
     if (!form.identifier.trim()) {
       newErrors.identifier = "Email or phone number is required.";
-    } else {
-      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const phonePattern = /^[0-9]{8,15}$/;
-      const isEmail = emailPattern.test(form.identifier);
-      const isPhone = phonePattern.test(form.identifier);
-
-      if (!isEmail && !isPhone) {
-        newErrors.identifier = "Enter a valid email or phone number.";
-      }
     }
 
     if (!form.password.trim()) {
@@ -60,143 +30,131 @@ export default function LoginPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  // -----------------------------
-  // SUBMIT HANDLER WITH LOADING
-  // -----------------------------
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-
     if (!validate()) return;
 
-    setLoading(true); // 🚀 Start loading
-
-    try {
-      // Simulate backend call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
+    setLoading(true);
+    setTimeout(() => {
       console.log("Login submitted:", form);
-
-      // TODO: integrate backend login
-    } catch (err) {
-      console.error("Login error:", err);
-    } finally {
-      setLoading(false); // Stop loading
-    }
+      setLoading(false);
+    }, 1200);
   };
 
-  // SEPARATE ROLE 
-  const redirectByRole = (role) => {
-  switch (role) {
-    case "manager":
-      window.location.href = "/manager/dashboard";
-      break;
-    case "support":
-      window.location.href = "/support/dashboard";
-      break;
-    case "trainer":
-      window.location.href = "/personal-trainer/dashboard";
-      break;
-    default:
-      window.location.href = "/member/dashboard";
-  }
-};
-
-
   return (
-    <div className="bg-white w-full max-w-md p-8 rounded-xl shadow-[0_2px_8px_rgba(0,10,8,0.15)] border border-borderColor-light">
+    <div className="auth-bg flex items-center justify-center px-6 font-['Obised'] text-[#f0f0f0] relative">
 
-      <h1 className="text-3xl font-semibold text-text-strong text-center mb-6">
-        Login
-      </h1>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-
-        {/* Email or Phone */}
-        <div>
-          <input
-            type="text"
-            placeholder="Email or Phone Number"
-            value={form.identifier}
-            onChange={(e) => updateField("identifier", e.target.value)}
-            disabled={loading}
-            className={`w-full p-3 border rounded-lg bg-form-bg text-form-text focus:ring-2 focus:ring-form-focus 
-              ${errors.identifier ? "border-notify-errorText" : "border-form-border"}
-              ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
-          />
-          {errors.identifier && (
-            <p className="text-notify-errorText text-sm mt-1">{errors.identifier}</p>
-          )}
-        </div>
-
-        {/* Password */}
-        <div>
-          <input
-            type="password"
-            placeholder="Password"
-            value={form.password}
-            onChange={(e) => updateField("password", e.target.value)}
-            disabled={loading}
-            className={`w-full p-3 border rounded-lg bg-form-bg text-form-text focus:ring-2 focus:ring-form-focus 
-              ${errors.password ? "border-notify-errorText" : "border-form-border"}
-              ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
-          />
-          {errors.password && (
-            <p className="text-notify-errorText text-sm mt-1">{errors.password}</p>
-          )}
-        </div>
-
-        {/* Login Button */}
-        <button
-          type="submit"
-          disabled={loading}
-          className={`w-full py-3 rounded-lg text-btnPrimary-text transition 
-            bg-btnPrimary hover:bg-btnPrimary-hover
-            flex items-center justify-center gap-2
-            ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
-        >
-          {loading && (
-            <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
-          )}
-          {loading ? "Processing..." : "Login"}
-        </button>
-      </form>
-
-      
-
-      {/* Forgot Password */}
-      <div className="text-center mt-4">
-        <Link href="/auth/forgot-password" className="text-accent underline">
-          Forgot password?
-        </Link>
+      {/* Glow Effects */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-40 -left-40 w-[420px] h-[420px] rounded-full bg-white/10 blur-[120px]" />
+        <div className="absolute bottom-0 -right-40 w-[420px] h-[420px] rounded-full bg-white/10 blur-[120px]" />
       </div>
 
-      {/* Register */}
-      <p className="text-center mt-4 text-text-medium">
-        Don’t have an account?{" "}
-        <Link href="/auth/register" className="text-accent font-semibold">
-          Register
-        </Link>
-      </p>
-
-      {/* Back to Home */}
-      <p
-        onClick={() => setExitOpen(true)}
-        className="text-center mt-3 text-accent underline cursor-pointer"
+      {/* Login Card */}
+      <div
+        className="w-full max-w-2xl p-10 rounded-2xl border relative z-10"
+        style={{
+          backgroundColor: "rgba(20,20,20,0.85)",
+          borderColor: "rgba(255,255,255,0.08)",
+          backdropFilter: "blur(12px)",
+          boxShadow: "0 40px 80px rgba(0,0,0,0.6)",
+        }}
       >
-        ← Back to Home
-      </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
 
-      <ExitModal
-        open={exitOpen}
-        onClose={() => setExitOpen(false)}
-        onConfirm={handleExitConfirm}
-      />
+          {/* Left */}
+          <div className="flex flex-col items-center justify-center text-center">
+            <div className="w-24 h-24 mb-6 rounded-xl overflow-hidden bg-white shadow-lg">
+              <img
+                src="/uploads/gymlogo.png"
+                alt="Gym Logo"
+                className="w-full h-full object-cover"
+              />
+            </div>
 
-      <Toast
-        show={toast.show}
-        message={toast.message}
-        onClose={() => setToast({ show: false, message: "" })}
-      />
+            <h1 className="text-5xl font-black mb-4 tracking-tight">
+              LOGIN
+            </h1>
+            <p className="text-lg opacity-70">
+              Welcome back to your fitness journey
+            </p>
+          </div>
+
+          {/* Right */}
+          <form onSubmit={handleSubmit} className="space-y-5">
+
+            <div>
+              <input
+                type="text"
+                placeholder="Email or Phone Number"
+                value={form.identifier}
+                onChange={(e) => updateField("identifier", e.target.value)}
+                disabled={loading}
+                className="w-full p-4 rounded-lg outline-none focus:ring-2"
+                style={{
+                  backgroundColor: "#282828",
+                  borderColor: errors.identifier ? "#ff4444" : "#282828",
+                  color: "#f0f0f0",
+                }}
+              />
+              {errors.identifier && (
+                <p className="text-red-400 text-sm mt-2">
+                  {errors.identifier}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <input
+                type="password"
+                placeholder="Password"
+                value={form.password}
+                onChange={(e) => updateField("password", e.target.value)}
+                disabled={loading}
+                className="w-full p-4 rounded-lg outline-none focus:ring-2"
+                style={{
+                  backgroundColor: "#282828",
+                  borderColor: errors.password ? "#ff4444" : "#282828",
+                  color: "#f0f0f0",
+                }}
+              />
+              {errors.password && (
+                <p className="text-red-400 text-sm mt-2">
+                  {errors.password}
+                </p>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-4 rounded-lg font-bold tracking-widest transition hover:scale-105"
+              style={{
+                backgroundColor: "#f0f0f0",
+                color: "#000014",
+                opacity: loading ? 0.7 : 1,
+              }}
+            >
+              {loading ? "PROCESSING..." : "LOGIN"}
+            </button>
+
+            <div className="text-center opacity-80">
+              <a href="/auth/forgot-password">Forgot password?</a>
+            </div>
+
+            <p className="text-center opacity-80">
+              Don&apos;t have an account?{" "}
+              <a href="/auth/register" className="font-bold">
+                Register
+              </a>
+            </p>
+
+            <p className="text-center mt-5 underline cursor-pointer opacity-80">
+              ← Back to Home
+            </p>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }

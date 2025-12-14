@@ -6,9 +6,12 @@ import ExitModal from "@/components/common/ExitModal";
 import Toast from "@/components/common/Toast";
 
 export default function ForgotPasswordPage() {
-  const [identifier, setIdentifier] = useState(""); // email or phone
+  const [identifier, setIdentifier] = useState("");
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
+
+  const [exitOpen, setExitOpen] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: "" });
 
   const validate = () => {
     const newErrors = {};
@@ -19,10 +22,7 @@ export default function ForgotPasswordPage() {
       const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       const phonePattern = /^[0-9]{8,15}$/;
 
-      const isEmail = emailPattern.test(identifier);
-      const isPhone = phonePattern.test(identifier);
-
-      if (!isEmail && !isPhone) {
+      if (!emailPattern.test(identifier) && !phonePattern.test(identifier)) {
         newErrors.identifier = "Enter a valid email or phone number.";
       }
     }
@@ -33,17 +33,11 @@ export default function ForgotPasswordPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     if (!validate()) return;
 
-    // TODO: call backend API: POST /auth/forgot-password
     console.log("Forgot password for:", identifier);
     setSubmitted(true);
   };
-
-  // Add the EXIT modal state and handler HERE
-  const [exitOpen, setExitOpen] = useState(false);
-  const [toast, setToast] = useState({ show: false, message: "" });
 
   const handleExitConfirm = () => {
     setExitOpen(false);
@@ -55,18 +49,26 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="bg-white w-full max-w-md p-8 rounded-xl shadow-[0_2px_8px_rgba(0,10,8,0.15)] border border-borderColor-light">
-
-      <h1 className="text-2xl font-semibold text-text-strong text-center mb-4">
-        Reset Password
+    <div
+      className="w-full max-w-md p-8 rounded-2xl border relative"
+      style={{
+        backgroundColor: "rgba(20,20,20,0.85)",
+        borderColor: "rgba(255,255,255,0.08)",
+        backdropFilter: "blur(12px)",
+        boxShadow: "0 40px 80px rgba(0,0,0,0.6)",
+        color: "#f0f0f0",
+        fontFamily: "'Obised', sans-serif",
+      }}
+    >
+      <h1 className="text-3xl font-black text-center mb-4 tracking-tight">
+        RESET PASSWORD
       </h1>
 
-      <p className="text-text-medium text-center mb-6">
-        Enter your email or phone number and we’ll send you a reset link or code.
+      <p className="text-center text-sm opacity-70 mb-6">
+        Enter your email or phone number and we’ll send you reset instructions.
       </p>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Email or Phone */}
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <input
             type="text"
@@ -78,11 +80,16 @@ export default function ForgotPasswordPage() {
                 setErrors((prev) => ({ ...prev, identifier: undefined }));
               }
             }}
-            className={`w-full p-3 border rounded-lg bg-form-bg text-form-text focus:ring-2 focus:ring-form-focus
-              ${errors.identifier ? "border-notify-errorText" : "border-form-border"}`}
+            className="w-full p-4 rounded-lg outline-none focus:ring-2"
+            style={{
+              backgroundColor: "#282828",
+              borderColor: errors.identifier ? "#ff4444" : "#282828",
+              color: "#f0f0f0",
+            }}
           />
+
           {errors.identifier && (
-            <p className="text-notify-errorText text-sm mt-1">
+            <p className="text-red-400 text-sm mt-2">
               {errors.identifier}
             </p>
           )}
@@ -90,39 +97,52 @@ export default function ForgotPasswordPage() {
 
         <button
           type="submit"
-          className="w-full py-3 rounded-lg bg-btnPrimary text-btnPrimary-text hover:bg-btnPrimary-hover transition"
+          className="w-full py-4 rounded-lg font-bold tracking-widest transition transform hover:scale-105"
+          style={{
+            backgroundColor: "#f0f0f0",
+            color: "#000014",
+          }}
         >
-          Send Reset Instructions
+          SEND RESET LINK
         </button>
       </form>
 
       {submitted && !errors.identifier && (
-        <div className="mt-4 p-3 rounded-lg bg-notify-infoBg text-notify-infoText text-sm">
-          If an account exists for that email or phone number, you’ll receive reset instructions shortly.
+        <div
+          className="mt-5 p-4 rounded-lg text-sm"
+          style={{
+            backgroundColor: "#1f1f1f",
+            color: "#f0f0f0",
+            opacity: 0.9,
+          }}
+        >
+          If an account exists for that email or phone number, you’ll receive
+          reset instructions shortly.
         </div>
       )}
 
-      <p className="text-center mt-4">
-        <Link href="/auth/login" className="text-accent underline">
-          Back to Login
+      <p className="text-center mt-6 opacity-80">
+        <Link href="/auth/login" className="underline">
+          ← Back to Login
         </Link>
       </p>
 
-      {/* Back to Home */}
       <p
-      onClick={() => setExitOpen(true)}
-      className="text-center mt-3 text-accent underline cursor-pointer"
+        onClick={() => setExitOpen(true)}
+        className="text-center mt-3 underline cursor-pointer opacity-70"
       >
-      ← Back to Home
+        ← Back to Home
       </p>
 
-      <ExitModal 
-      open={exitOpen}
-      onClose={() => setExitOpen(false)}
-      onConfirm={handleExitConfirm}
+      {/* Exit Modal */}
+      <ExitModal
+        open={exitOpen}
+        onClose={() => setExitOpen(false)}
+        onConfirm={handleExitConfirm}
       />
 
-      <Toast 
+      {/* Toast */}
+      <Toast
         show={toast.show}
         message={toast.message}
         onClose={() => setToast({ show: false, message: "" })}
