@@ -1,6 +1,11 @@
 "use client";
 
-import { LifeBuoy, MessageCircle, BookOpen, FileText } from "lucide-react";
+import {
+  LifeBuoy,
+  MessageCircle,
+  BookOpen,
+  FileText,
+} from "lucide-react";
 
 export default function SupportDashboardPage() {
   const stats = [
@@ -11,20 +16,43 @@ export default function SupportDashboardPage() {
   ];
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-8">Support Dashboard</h1>
+    <div className="space-y-6">
+      {/* ================= HEADER ================= */}
+      <div>
+        <h1 className="text-2xl font-bold text-white">
+          Support Dashboard
+        </h1>
+        <p className="text-sm text-gray-400">
+          Overview of support operations
+        </p>
+      </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* ================= STATS GRID ================= */}
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((s, i) => {
           const Icon = s.icon;
+
           return (
             <div
               key={i}
-              className="bg-white border border-borderColor-light p-6 rounded-lg shadow-sm"
+              className="bg-[#1A1F26] border border-[#2A2F38] rounded-2xl p-6 shadow-xl"
             >
-              <Icon className="w-10 h-10 text-accent mb-3" />
-              <p className="text-text-medium">{s.label}</p>
-              <p className="text-2xl font-bold">{s.value}</p>
+              {/* ICON */}
+              <div className="mb-6">
+                <div className="w-10 h-10 rounded-xl bg-[#0F141B] flex items-center justify-center">
+                  <Icon className="w-5 h-5 text-gray-300" />
+                </div>
+              </div>
+
+              {/* LABEL */}
+              <p className="text-sm text-gray-400 mb-1">
+                {s.label}
+              </p>
+
+              {/* VALUE */}
+              <p className="text-3xl font-semibold text-white">
+                {s.value}
+              </p>
             </div>
           );
         })}
