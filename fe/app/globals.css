@@ -2,13 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Global reset */
+/* ===============================
+   Global reset
+================================ */
 * {
   box-sizing: border-box;
 }
 
-/* Smooth font rendering */
-html, body {
+/* ===============================
+   Base site styles (GIỮ NGUYÊN)
+================================ */
+html,
+body {
   padding: 0;
   margin: 0;
   font-family: system-ui, sans-serif;
@@ -16,7 +21,9 @@ html, body {
   color: #0F1A18; /* text.strong */
 }
 
-/* Scrollbar styling */
+/* ===============================
+   Scrollbar styling
+================================ */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -28,4 +35,32 @@ html, body {
 
 ::-webkit-scrollbar-track {
   background: #F5F5F2;
+}
+
+/* ===============================
+   AUTH GRADIENT + GLOW
+================================ */
+.auth-bg {
+  width: 100vw;
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(255, 255, 255, 0.08),
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at bottom right,
+      rgba(255, 255, 255, 0.06),
+      transparent 40%
+    ),
+    linear-gradient(
+      135deg,
+      #0f0c29,
+      #1a1a2e,
+      #16213e
+    );
 }
