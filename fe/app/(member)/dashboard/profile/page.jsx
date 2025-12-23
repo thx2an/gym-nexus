@@ -1,23 +1,72 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
 import { Camera, Edit2, ArrowLeft } from 'lucide-react';
 import EditProfileModal from '@/components/dashboard/profile/EditProfileModal';
+import authApi from '@/lib/api/authApi';
 
 export default function ProfilePage() {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [user, setUser] = useState({
-        firstName: "Member",
-        lastName: "Name",
+        full_name: "Member Name",
         email: "member@example.com",
-        phone: "+84 901 234 567"
+        phone: "+84 ...",
+        gender: "Other",
+        date_of_birth: "",
+        user_id: null
     });
 
-    const handleSaveProfile = (newData) => {
-        setUser(newData);
+    useEffect(() => {
+        fetchProfile();
+    }, []);
+
+    const fetchProfile = async () => {
+        try {
+            const res = await authApi.getProfile();
+            // Assuming response is: { user_id: 1, full_name: "...", email: "...", ... }
+            // Or if wrapped: res.user?
+            // Checking common Laravel Resource response wrapper or Controller return
+            // Controller returns: $request->user(). So it is the user object directly usually.
+            // But verify NguoiDungController. 
+            // `return $request->user();` -> Returns JSON of the model.
+
+            setUser(res);
+            setLoading(false);
+        } catch (error) {
+            console.error("Failed to fetch profile:", error);
+            setLoading(false);
+        }
     };
+
+    const handleSaveProfile = async (newData) => {
+        try {
+            // Call API update
+            const res = await authApi.updateProfile({
+                full_name: newData.full_name,
+                phone: newData.phone,
+                gender: newData.gender,
+                date_of_birth: newData.date_of_birth,
+            });
+            if (res.status && res.user) {
+                setUser(res.user);
+                setIsEditModalOpen(false);
+            } else {
+                // Fallback if structure different
+                fetchProfile();
+                setIsEditModalOpen(false);
+            }
+        } catch (error) {
+            console.error("Update failed:", error);
+            alert("Failed to update profile. Please check your inputs.");
+        }
+    };
+
+    if (loading) return <div className="p-10 text-center text-[#f0f0f0]">Loading profile...</div>;
+
+    const initials = user.full_name ? user.full_name.charAt(0).toUpperCase() : "M";
 
     return (
         <div className="space-y-6 max-w-4xl mx-auto pb-10">
@@ -34,7 +83,7 @@ export default function ProfilePage() {
                     <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-bg-subtle shadow-md">
                         {/* Avatar Placeholder */}
                         <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">
-                            <span className="text-4xl font-bold">{user.firstName[0]}</span>
+                            <span className="text-4xl font-bold">{initials}</span>
                         </div>
                     </div>
                     {/* Edit Avatar Button */}
@@ -46,9 +95,9 @@ export default function ProfilePage() {
                 <div className="flex-1 text-center md:text-left pt-2">
                     <div className="flex flex-col md:flex-row justify-between items-start gap-4">
                         <div>
-                            <h2 className="text-2xl font-bold text-text-strong">{user.firstName} {user.lastName}</h2>
+                            <h2 className="text-2xl font-bold text-text-strong">{user.full_name}</h2>
                             <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mt-2 text-text-medium text-sm">
-                                <span className="font-medium text-accent-DEFAULT">3-Month Membership Member</span>
+                                <span className="font-medium text-accent-DEFAULT">Member</span>
                             </div>
                         </div>
                         <button
@@ -77,12 +126,8 @@ export default function ProfilePage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
                     <div>
-                        <p className="text-xs text-text-subtle uppercase font-semibold mb-1">First Name</p>
-                        <p className="text-base font-medium text-text-strong">{user.firstName}</p>
-                    </div>
-                    <div>
-                        <p className="text-xs text-text-subtle uppercase font-semibold mb-1">Last Name</p>
-                        <p className="text-base font-medium text-text-strong">{user.lastName}</p>
+                        <p className="text-xs text-text-subtle uppercase font-semibold mb-1">Full Name</p>
+                        <p className="text-base font-medium text-text-strong">{user.full_name}</p>
                     </div>
                     <div>
                         <p className="text-xs text-text-subtle uppercase font-semibold mb-1">Email address</p>
@@ -91,6 +136,14 @@ export default function ProfilePage() {
                     <div>
                         <p className="text-xs text-text-subtle uppercase font-semibold mb-1">Phone</p>
                         <p className="text-base font-medium text-text-strong">{user.phone}</p>
+                    </div>
+                    <div>
+                        <p className="text-xs text-text-subtle uppercase font-semibold mb-1">Gender</p>
+                        <p className="text-base font-medium text-text-strong">{user.gender || 'Not set'}</p>
+                    </div>
+                    <div>
+                        <p className="text-xs text-text-subtle uppercase font-semibold mb-1">Date of Birth</p>
+                        <p className="text-base font-medium text-text-strong">{user.date_of_birth || 'Not set'}</p>
                     </div>
                 </div>
             </Card>

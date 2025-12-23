@@ -1,24 +1,42 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import TicketStatusBadge from "./TicketStatusBadge";
+import { supportApi } from "@/lib/api/supportApi";
 
 export default function TicketListStaff() {
-  const tickets = [
-    { id: 1, subject: "Payment not processed", status: "open", member: "Alice" },
-    {
-      id: 2,
-      subject: "Cannot book session",
-      status: "in_progress",
-      member: "David",
-    },
-    {
-      id: 3,
-      subject: "Refund request delayed",
-      status: "waiting",
-      member: "Sara",
-    },
-  ];
+  const [tickets, setTickets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    loadTickets();
+  }, []);
+
+  const normalizeStatus = (status) => {
+    if (!status) return "open";
+    const normalized = status.toString().trim().toLowerCase().replace(/\s+/g, "_");
+    if (normalized.includes("waiting")) return "waiting";
+    return normalized;
+  };
+
+  const loadTickets = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await supportApi.getStaffTickets();
+      if (response.success) {
+        setTickets(response.data);
+      } else {
+        setError("Failed to load tickets");
+      }
+    } catch (err) {
+      setError(err?.message || "Failed to load tickets");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-6 max-w-6xl">
@@ -31,6 +49,18 @@ export default function TicketListStaff() {
           Manage and respond to member support requests
         </p>
       </div>
+
+      {error && (
+        <div className="rounded-xl border border-[#2A2F38] bg-[#1A1F26] px-4 py-3 text-sm text-red-300">
+          {error}
+        </div>
+      )}
+
+      {loading && (
+        <div className="rounded-xl border border-[#2A2F38] bg-[#1A1F26] px-4 py-3 text-sm text-gray-300">
+          Loading tickets...
+        </div>
+      )}
 
       {/* ================= TABLE CARD ================= */}
       <div className="bg-[#1A1F26] border border-[#2A2F38] rounded-2xl overflow-hidden">
@@ -71,7 +101,7 @@ export default function TicketListStaff() {
                   {t.member}
                 </td>
                 <td className="px-6 py-4">
-                  <TicketStatusBadge status={t.status} />
+                  <TicketStatusBadge status={normalizeStatus(t.status)} />
                 </td>
                 <td className="px-6 py-4">
                   <Link

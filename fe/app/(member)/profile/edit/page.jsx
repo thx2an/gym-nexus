@@ -1,17 +1,44 @@
 "use client"
 
-import { useState } from "react"
-import { User, Camera, Save } from "lucide-react"
+import { useState, useEffect } from "react"
+import { User, Camera, Save, Phone, CheckCircle } from "lucide-react"
 import Image from "next/image"
+import authApi from "@/lib/api/authApi"
+import { useRouter } from "next/navigation"
 
 export default function EditProfilePage() {
+  const router = useRouter()
   const [formData, setFormData] = useState({
-    name: "John Doe",
-    phone: "+1 (555) 123-4567",
-    address: "123 Main St, City, State 12345",
+    full_name: "",
+    phone: "",
+    gender: "",
+    date_of_birth: "",
   })
   const [profileImage, setProfileImage] = useState("/abstract-profile.png")
   const [saving, setSaving] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [successMessage, setSuccessMessage] = useState("")
+
+  useEffect(() => {
+    fetchProfile()
+  }, [])
+
+  const fetchProfile = async () => {
+    try {
+      const res = await authApi.getProfile()
+      // Adapt response to form data
+      setFormData({
+        full_name: res.full_name || "",
+        phone: res.phone || "",
+        gender: res.gender || "",
+        date_of_birth: res.date_of_birth || "",
+      })
+      setLoading(false)
+    } catch (error) {
+      console.error("Failed to load profile", error)
+      setLoading(false)
+    }
+  }
 
   const handleImageChange = (e) => {
     const file = e.target.files?.[0]
@@ -24,13 +51,104 @@ export default function EditProfilePage() {
     }
   }
 
+  /* ================= INPUT NORMALIZATION ================= */
+  const handleInputChange = (field, value) => {
+    let newValue = value;
+
+    if (field === 'full_name') {
+      newValue = value.replace(/\s+/g, ' ');
+    } else if (field === 'phone') {
+      newValue = value.replace(/[^0-9+]/g, '');
+    }
+
+    setFormData(prev => ({ ...prev, [field]: newValue }));
+  };
+
+  /* ================= VALIDATION ================= */
+  const validate = () => {
+    // 1. Full Name
+    const nameRegex = /^(?=.{2,50}$)[\p{L}]+(?:[ '-][\p{L}]+)*$/u;
+    if (!formData.full_name) {
+      alert("Full name is required.");
+      return false;
+    } else if (!nameRegex.test(formData.full_name.trim())) {
+      alert("Validation failed:\nName must be 2-50 chars, no numbers or special symbols.");
+      return false;
+    }
+
+    // 2. Phone
+    const phoneRegex = /^(?:0\d{9}|\+84\d{9})$/;
+    if (!formData.phone) {
+      alert("Phone is required.");
+      return false;
+    } else if (!phoneRegex.test(formData.phone)) {
+      alert("Validation failed:\nPhone must be 10 digits (0xxxxxxxxx) or +84xxxxxxxxx.");
+      return false;
+    }
+
+    // 3. Gender
+    if (!formData.gender) {
+      alert("Gender is required.");
+      return false;
+    }
+
+    // 4. Date of Birth
+    if (!formData.date_of_birth) {
+      alert("Date of birth is required.");
+      return false;
+    } else {
+      const dob = new Date(formData.date_of_birth);
+      const today = new Date();
+      let age = today.getFullYear() - dob.getFullYear();
+      const m = today.getMonth() - dob.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+        age--; // not birthday yet
+      }
+
+      if (dob >= today) {
+        alert("Validation failed:\nDate of birth must be in the past.");
+        return false;
+      } else if (age < 12) {
+        alert("Validation failed:\nYou must be at least 12 years old.");
+        return false;
+      } else if (age > 90) {
+        alert("Validation failed:\nDate of birth is invalid.");
+        return false;
+      }
+    }
+
+    return true;
+  };
+
   const handleSave = async () => {
+    if (!validate()) return;
+
     setSaving(true)
-    // Mock save
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    setSaving(false)
-    alert("Profile updated successfully!")
+    setSuccessMessage("")
+    try {
+      await authApi.updateProfile(formData)
+      setSuccessMessage("Profile updated successfully! Redirecting...")
+
+      // Auto navigate after 1.5 seconds
+      setTimeout(() => {
+        router.push("/profile")
+      }, 1500)
+    } catch (error) {
+      console.error("Update failed", error)
+      if (error.response && error.response.data && error.response.data.errors) {
+        // Laravel validation errors format: { errors: { field: ["message"] } }
+        const messages = Object.values(error.response.data.errors).flat().join("\n");
+        alert("Validation failed:\n" + messages);
+      } else if (error.response && error.response.data && error.response.data.message) {
+        alert("Error: " + error.response.data.message);
+      } else {
+        alert("Failed to update profile. Please check inputs.")
+      }
+      setSaving(false)
+    }
   }
+
+  if (loading) return <div className="p-12 text-[#f0f0f0]">Loading...</div>
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -80,8 +198,8 @@ export default function EditProfilePage() {
               <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#606060]" />
               <input
                 type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                value={formData.full_name}
+                onChange={(e) => handleInputChange("full_name", e.target.value)}
                 className="w-full pl-10 pr-4 py-3 bg-[#141414] border border-[#282828] rounded-lg text-[#f0f0f0] focus:outline-none focus:border-[#f0f0f0] transition-colors"
               />
             </div>
@@ -89,24 +207,51 @@ export default function EditProfilePage() {
 
           <div>
             <label className="block text-sm font-semibold text-[#f0f0f0] mb-2">Phone Number</label>
-            <input
-              type="tel"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              className="w-full px-4 py-3 bg-[#141414] border border-[#282828] rounded-lg text-[#f0f0f0] focus:outline-none focus:border-[#f0f0f0] transition-colors"
-            />
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#606060]" />
+              <input
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => handleInputChange("phone", e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-[#141414] border border-[#282828] rounded-lg text-[#f0f0f0] focus:outline-none focus:border-[#f0f0f0] transition-colors"
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-[#f0f0f0] mb-2">Address</label>
-            <textarea
-              value={formData.address}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              rows={3}
-              className="w-full px-4 py-3 bg-[#141414] border border-[#282828] rounded-lg text-[#f0f0f0] focus:outline-none focus:border-[#f0f0f0] transition-colors resize-none"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-[#f0f0f0] mb-2">Gender</label>
+              <select
+                value={formData.gender}
+                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                className="w-full px-4 py-3 bg-[#141414] border border-[#282828] rounded-lg text-[#f0f0f0] focus:outline-none focus:border-[#f0f0f0] transition-colors appearance-none"
+              >
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-[#f0f0f0] mb-2">Date of Birth</label>
+              <input
+                type="date"
+                value={formData.date_of_birth}
+                onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+                className="w-full px-4 py-3 bg-[#141414] border border-[#282828] rounded-lg text-[#f0f0f0] focus:outline-none focus:border-[#f0f0f0] transition-colors"
+              />
+            </div>
           </div>
+
         </div>
+
+        {/* Success Message */}
+        {successMessage && (
+          <div className="mt-6 p-4 bg-green-500/10 border border-green-500/20 rounded-lg flex items-center gap-3 text-green-500 animate-in fade-in slide-in-from-top-2">
+            <CheckCircle className="h-5 w-5" />
+            <span className="font-medium">{successMessage}</span>
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex gap-4 mt-8 pt-8 border-t border-[#000000]">
@@ -118,7 +263,7 @@ export default function EditProfilePage() {
           </button>
           <button
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || successMessage}
             className="flex-1 px-6 py-3 bg-[#f0f0f0] hover:bg-[#e0e0e0] text-[#141414] rounded-lg font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
           >
             <Save className="h-5 w-5" />

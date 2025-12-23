@@ -15,6 +15,24 @@ export default function TicketsPage() {
     loadTickets()
   }, [])
 
+  const normalizeStatus = (status) => {
+    if (!status) return "open"
+    return status.toString().trim().toLowerCase().replace(/\s+/g, "_")
+  }
+
+  const getStatusLabel = (status) => {
+    const normalized = normalizeStatus(status)
+    const labels = {
+      open: "Open",
+      in_progress: "In Progress",
+      waiting: "Waiting",
+      waiting_for_member: "Waiting for Member",
+      resolved: "Resolved",
+      closed: "Closed",
+    }
+    return labels[normalized] || "Open"
+  }
+
   const loadTickets = async () => {
     try {
       setLoading(true)
@@ -26,7 +44,7 @@ export default function TicketsPage() {
         setError("Failed to load tickets")
       }
     } catch (err) {
-      setError("An error occurred while loading tickets")
+      setError(err?.message || "An error occurred while loading tickets")
     } finally {
       setLoading(false)
     }
@@ -34,33 +52,35 @@ export default function TicketsPage() {
 
   const getStatusBadge = (status) => {
     const styles = {
-      Open: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-      "In Progress": "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-      Resolved: "bg-green-500/10 text-green-500 border-green-500/20",
-      Closed: "bg-[#282828] text-[#606060] border-[#282828]",
+      open: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+      in_progress: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
+      waiting: "bg-[#282828] text-[#a0a0a0] border-[#282828]",
+      waiting_for_member: "bg-[#282828] text-[#a0a0a0] border-[#282828]",
+      resolved: "bg-green-500/10 text-green-500 border-green-500/20",
+      closed: "bg-[#282828] text-[#606060] border-[#282828]",
     }
+    const normalized = normalizeStatus(status)
     return (
-      <span className={`px-3 py-1 rounded-lg border text-xs font-semibold ${styles[status] || styles.Open}`}>
-        {status}
+      <span className={`px-3 py-1 rounded-lg border text-xs font-semibold ${styles[normalized] || styles.open}`}>
+        {getStatusLabel(status)}
       </span>
     )
   }
 
   const getStatusIcon = (status) => {
-    switch (status) {
-      case "Resolved":
+    switch (normalizeStatus(status)) {
+      case "resolved":
         return <CheckCircle className="h-5 w-5 text-green-500" />
-      case "In Progress":
+      case "in_progress":
         return <Clock className="h-5 w-5 text-yellow-500" />
-      case "Open":
+      case "open":
         return <AlertCircle className="h-5 w-5 text-blue-500" />
       default:
         return <HeadphonesIcon className="h-5 w-5 text-[#606060]" />
     }
   }
 
-  const filteredTickets =
-    filter === "all" ? tickets : tickets.filter((t) => t.status.toLowerCase().replace(" ", "_") === filter)
+  const filteredTickets = filter === "all" ? tickets : tickets.filter((t) => normalizeStatus(t.status) === filter)
 
   if (loading) {
     return (
@@ -101,7 +121,7 @@ export default function TicketsPage() {
           <p className="text-[#a0a0a0]">View and manage your support requests</p>
         </div>
         <Link
-          href="/support/tickets/new"
+          href="/member-support/tickets/new"
           className="flex items-center gap-2 px-6 py-3 bg-[#f0f0f0] hover:bg-[#e0e0e0] text-[#141414] rounded-lg font-medium transition-colors"
         >
           <Plus className="h-5 w-5" />
@@ -141,7 +161,7 @@ export default function TicketsPage() {
               : `No ${filter.replace("_", " ")} tickets`}
           </p>
           <Link
-            href="/support/tickets/new"
+            href="/member-support/tickets/new"
             className="inline-flex items-center gap-2 px-6 py-3 bg-[#f0f0f0] hover:bg-[#e0e0e0] text-[#141414] rounded-lg font-medium transition-colors"
           >
             <Plus className="h-5 w-5" />
@@ -177,7 +197,15 @@ export default function TicketsPage() {
                     </div>
                   </div>
                 </div>
-                {getStatusBadge(ticket.status)}
+                <div className="flex items-center gap-3">
+                  {getStatusBadge(ticket.status)}
+                  <Link
+                    href={`/member-support/tickets/${ticket.id}`}
+                    className="px-3 py-1 rounded-lg border border-[#000000] text-xs font-semibold text-[#f0f0f0] hover:bg-[#1E1E1E] transition-colors"
+                  >
+                    View
+                  </Link>
+                </div>
               </div>
 
               {ticket.lastReply && (

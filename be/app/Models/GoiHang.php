@@ -32,4 +32,8 @@ class GoiHang extends Model
     {
         return $this->belongsTo(GoiHangNguoiDung::class, 'package_id', 'package_id');
     }
+    public function goiTap()
+    {
+        return $this->belongsTo(GoiTap::class, 'package_id', 'package_id');
+    }
 }

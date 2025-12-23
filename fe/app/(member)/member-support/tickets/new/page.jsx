@@ -31,12 +31,12 @@ export default function NewTicketPage() {
       const response = await supportApi.createTicket(formData)
 
       if (response.success) {
-        router.push("/support/tickets")
+        router.push("/member-support/tickets")
       } else {
         setError("Failed to create ticket. Please try again.")
       }
     } catch (err) {
-      setError("An error occurred while creating the ticket")
+      setError(err?.message || "An error occurred while creating the ticket")
     } finally {
       setSubmitting(false)
     }

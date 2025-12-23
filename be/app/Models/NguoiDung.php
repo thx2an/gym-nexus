@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\VaiTro;
+use App\Models\MemberProfile;
 
 class NguoiDung extends Model
 {
@@ -61,5 +62,10 @@ class NguoiDung extends Model
     public function vaiTros()
     {
         return $this->belongsToMany(VaiTro::class, 'vai_tro_nguoi_dungs', 'user_id', 'role_id');
+    }
+
+    public function memberProfile()
+    {
+        return $this->hasOne(MemberProfile::class, 'user_id', 'user_id');
     }
 }

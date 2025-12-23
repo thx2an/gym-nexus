@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import authApi from "@/lib/api/authApi";
 
 export default function LoginPage() {
   const [form, setForm] = useState({
@@ -31,15 +32,67 @@ export default function LoginPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const redirectByRole = (roleId) => {
+    // 1: Manager, 2: Staff, 3: PT, 4: Member
+    switch (Number(roleId)) {
+      case 1: // Manager
+        window.location.href = "/manager/dashboard";
+        break;
+      case 2: // Staff (Support)
+        window.location.href = "/support/dashboard";
+        break;
+      case 3: // PT
+        window.location.href = "/personal_trainer/dashboard";
+        break;
+      case 4: // Member
+        window.location.href = "/dashboard";
+        break;
+      default:
+        window.location.href = "/dashboard";
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
 
     setLoading(true);
-    setTimeout(() => {
-      console.log("Login submitted:", form);
+    setErrors({}); // Clear previous errors
+
+    try {
+      const res = await authApi.login({
+        email: form.identifier,
+        password: form.password
+      });
+
+      // Assuming BE returns { status: true, token: "...", user: {...} } or similar
+      // Adjust based on actual BE response structure. Usually: res.token or res.data.token
+
+      const token = res.token || res.access_token;
+      const user = res.user;
+
+      if (token) {
+        localStorage.setItem("auth_token", token);
+        localStorage.setItem("auth_user", JSON.stringify(user));
+
+        // Redirect based on role
+        if (user && user.idChucVu) {
+          redirectByRole(user.idChucVu);
+        } else {
+          // Fallback
+          window.location.href = "/dashboard";
+        }
+      } else {
+        setErrors({ form: "Login failed: No token received." });
+      }
+
+    } catch (error) {
+      console.error("Login error:", error);
+      const msg = error.response?.data?.message || "Login failed. Please check your credentials.";
+      setErrors({ form: msg });
+    } finally {
       setLoading(false);
-    }, 1200);
+    }
   };
 
   return (
@@ -83,6 +136,11 @@ export default function LoginPage() {
 
           {/* Right */}
           <form onSubmit={handleSubmit} className="space-y-5">
+            {errors.form && (
+              <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-lg text-sm text-center">
+                {errors.form}
+              </div>
+            )}
 
             <div>
               <input

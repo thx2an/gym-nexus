@@ -33,7 +33,7 @@ class ThanhToan extends Model
      */
     public function member()
     {
-        return $this->belongsTo(ProfileMember::class, 'member_id', 'member_id');
+        return $this->belongsTo(MemberProfile::class, 'member_id', 'member_id');
     }
 
     /**
@@ -50,5 +50,13 @@ class ThanhToan extends Model
     public function buoiTap()
     {
         return $this->belongsTo(BuoiTap::class, 'session_id', 'session_id');
+    }
+
+    /**
+     * Get the invoice associated with the payment.
+     */
+    public function hoaDon()
+    {
+        return $this->hasOne(HoaDon::class, 'payment_id', 'payment_id');
     }
 }

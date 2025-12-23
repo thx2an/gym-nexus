@@ -41,9 +41,9 @@ export default function Navbar() {
 
           {open && (
             <div className="absolute right-0 top-full mt-2 w-48 bg-bg-base border border-borderColor-light rounded-xl shadow-lg py-1 z-50 animate-in fade-in slide-in-from-top-2">
-              <Link href="/dashboard/profile" className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-strong hover:bg-bg-subtle transition-colors">
+              <Link href="/profile" className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-strong hover:bg-bg-subtle transition-colors">
                 <User size={16} />
-                Edit Profile
+                Profile
               </Link>
               <button className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-accent-error hover:bg-accent-error/10 transition-colors text-left">
                 <LogOut size={16} />
