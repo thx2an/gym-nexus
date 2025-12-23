@@ -15,6 +15,24 @@ export default function PackagesPage() {
     loadPackages()
   }, [])
 
+  const [hasActiveMembership, setHasActiveMembership] = useState(false)
+
+  useEffect(() => {
+    loadPackages()
+    checkMembershipStatus()
+  }, [])
+
+  const checkMembershipStatus = async () => {
+    try {
+      const res = await membershipApi.getStatus()
+      if (res.success && res.data.status === 'Active') {
+        setHasActiveMembership(true)
+      }
+    } catch (error) {
+      console.error("Failed to check membership status", error)
+    }
+  }
+
   const loadPackages = async () => {
     try {
       setLoading(true)
@@ -72,6 +90,18 @@ export default function PackagesPage() {
         <p className="text-[#a0a0a0]">Choose the perfect membership plan for your fitness journey</p>
       </div>
 
+      {hasActiveMembership && (
+        <div className="mb-8 p-4 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 rounded-lg flex items-center gap-3">
+          <div className="p-2 bg-yellow-500/20 rounded-full">
+            <Package className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="font-bold">Active Membership Found</h3>
+            <p className="text-sm opacity-90">You already have an active subscription. You cannot select a new plan until your current one expires.</p>
+          </div>
+        </div>
+      )}
+
       {/* Search */}
       <div className="mb-6">
         <div className="relative">
@@ -94,44 +124,69 @@ export default function PackagesPage() {
         </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredPackages.map((pkg) => (
-            <div
-              key={pkg.id}
-              className={`bg-[#282828] border rounded-lg p-6 hover:bg-[#1E1E1E] transition-all ${
-                pkg.recommended ? "border-[#f0f0f0]" : "border-[#282828]"
-              }`}
-            >
-              {pkg.recommended && (
-                <div className="inline-block px-3 py-1 bg-[#f0f0f0] text-[#141414] text-xs font-semibold rounded-full mb-4">
-                  RECOMMENDED
-                </div>
-              )}
+          {filteredPackages.map((pkg) => {
+            // Parse benefits: DB often stores as "- Benefit 1 - Benefit 2" or newline separated
+            // We split by newline or hyphen if newline absent
+            let features = [];
+            if (pkg.benefits) {
+              features = pkg.benefits.split('-').filter(i => i.trim() !== "").map(i => i.trim());
+            }
 
-              <h3 className="text-2xl font-bold text-[#f0f0f0] mb-2">{pkg.name}</h3>
-              <div className="flex items-baseline gap-2 mb-4">
-                <span className="text-4xl font-bold text-[#f0f0f0]">${pkg.price}</span>
-                <span className="text-[#a0a0a0]">/ {pkg.duration}</span>
-              </div>
-
-              <div className="space-y-3 mb-6">
-                {pkg.benefits.map((benefit, index) => (
-                  <div key={index} className="flex items-start gap-2">
-                    <Check className="h-5 w-5 text-[#f0f0f0] flex-shrink-0 mt-0.5" />
-                    <span className="text-[#a0a0a0] text-sm">{benefit}</span>
-                  </div>
-                ))}
-              </div>
-
-              <Link
-                href={`/payments/checkout?packageId=${pkg.id}`}
-                className="block w-full px-6 py-3 bg-[#f0f0f0] hover:bg-[#e0e0e0] text-[#141414] text-center rounded-lg font-medium transition-colors"
+            return (
+              <div
+                key={pkg.package_id}
+                className={`bg-[#282828] border rounded-lg p-6 hover:bg-[#1E1E1E] transition-all border-[#282828] flex flex-col h-full`}
               >
-                Select Plan
-              </Link>
-            </div>
-          ))}
+                {pkg.is_active && pkg.price > 1000000 && (
+                  // Example logic for "Recommended" or we can add recommended col later. 
+                  // For now, highlight high value or specific code
+                  pkg.code.includes("PREMIUM") && (
+                    <div className="inline-block px-3 py-1 bg-[#f0f0f0] text-[#141414] text-xs font-semibold rounded-full mb-4 self-start">
+                      RECOMMENDED
+                    </div>
+                  )
+                )}
+
+                <h3 className="text-2xl font-bold text-[#f0f0f0] mb-2">{pkg.name}</h3>
+                <p className="text-sm text-[#a0a0a0] mb-4 min-h-[40px]">{pkg.description}</p>
+
+                <div className="flex items-baseline gap-2 mb-4">
+                  <span className="text-3xl font-bold text-[#f0f0f0]">
+                    {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(pkg.price)}
+                  </span>
+                  <span className="text-[#a0a0a0] text-sm">/ {pkg.duration_days} days</span>
+                </div>
+
+                <div className="space-y-3 mb-6 min-h-[100px] flex-grow">
+                  {features.map((benefit, index) => (
+                    <div key={index} className="flex items-start gap-2">
+                      <Check className="h-4 w-4 text-[#f0f0f0] flex-shrink-0 mt-1" />
+                      <span className="text-[#d0d0d0] text-sm leading-tight">{benefit}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <Link
+                  onClick={(e) => {
+                    if (hasActiveMembership) {
+                      e.preventDefault()
+                      alert("You already have an active membership plan. You cannot subscribe to another one until the current one expires.")
+                    }
+                  }}
+                  href={hasActiveMembership ? "#" : `/memberships/${pkg.package_id}/payment`}
+                  className={`block w-full px-6 py-3 text-center rounded-lg font-medium transition-colors mt-auto ${hasActiveMembership
+                    ? "bg-[#282828] text-[#606060] cursor-not-allowed border border-[#606060]"
+                    : "bg-[#f0f0f0] hover:bg-[#e0e0e0] text-[#141414]"
+                    }`}
+                >
+                  {hasActiveMembership ? "Active Plan" : "Select Plan"}
+                </Link>
+              </div>
+            )
+          })}
         </div>
       )}
     </div>
   )
 }
+

@@ -1,264 +1,204 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Plus, Clock } from "lucide-react"
-import { getTrainerSchedule, createAvailability } from "@/lib/api/trainerApi"
-import { useToast } from "@/hooks/use-toast"
+import { useState, useEffect } from "react"
+import { bookingApi } from "@/lib/api/bookingApi"
+import { Calendar, Plus, Trash2 } from "lucide-react"
 
-const DAYS_OF_WEEK = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-const TIME_SLOTS = Array.from({ length: 14 }, (_, i) => `${8 + i}:00`)
+export default function PtSchedulePage() {
+    const [sessions, setSessions] = useState([])
+    const [availability, setAvailability] = useState([])
+    const [loading, setLoading] = useState(true)
 
-export default function SchedulePage() {
-    const [schedule, setSchedule] = useState([])
-    const [isLoading, setIsLoading] = useState(true)
-    const [error, setError] = useState(null)
-    const [dialogOpen, setDialogOpen] = useState(false)
-    const [selectedSlot, setSelectedSlot] = useState(null)
-    const [formData, setFormData] = useState({
-        date: "",
-        startTime: "",
-        endTime: "",
-        notes: "",
-    })
-    const { toast } = useToast()
-
-    const loadSchedule = async () => {
-        setIsLoading(true)
-        setError(null)
-        try {
-            const data = await getTrainerSchedule("2025-01-13", "2025-01-19")
-            setSchedule(data)
-        } catch (err) {
-            setError("Failed to load schedule")
-            console.error(err)
-        } finally {
-            setIsLoading(false)
-        }
-    }
+    // Availability Form State
+    const [formOpen, setFormOpen] = useState(false)
+    const [isRecurring, setIsRecurring] = useState(false)
+    const [selectedDate, setSelectedDate] = useState("")
+    const [selectedDay, setSelectedDay] = useState("1") // 1 = Monday
+    const [startTime, setStartTime] = useState("")
+    const [endTime, setEndTime] = useState("")
 
     useEffect(() => {
-        loadSchedule()
+        loadData()
     }, [])
 
-    const handleAddAvailability = async () => {
-        if (!formData.date || !formData.startTime || !formData.endTime) {
-            toast({ title: "Please fill in all required fields", variant: "destructive" })
-            return
-        }
-
+    const loadData = async () => {
         try {
-            await createAvailability(formData)
-            toast({ title: "Availability added" })
-            setDialogOpen(false)
-            setFormData({ date: "", startTime: "", endTime: "", notes: "" })
-            loadSchedule()
+            setLoading(true)
+            const [sessRes, availRes] = await Promise.all([
+                bookingApi.getSessions({ status: 'confirmed' }),
+                bookingApi.getAvailability()
+            ])
+
+            if (sessRes.success) setSessions(sessRes.data)
+            if (availRes.success) setAvailability(availRes.data)
         } catch (err) {
-            toast({ title: "Failed to add availability", variant: "destructive" })
+            console.error(err)
+        } finally {
+            setLoading(false)
         }
     }
 
-    const handleSlotClick = (slot) => {
-        setSelectedSlot(slot)
+    const handleAddAvailability = async (e) => {
+        e.preventDefault()
+        try {
+            const data = {
+                branch_id: 1, // Default or fetch
+                start_time: startTime,
+                end_time: endTime,
+                is_recurring: isRecurring,
+                day_of_week: isRecurring ? parseInt(selectedDay) : null,
+                date: !isRecurring ? selectedDate : null
+            }
+
+            const res = await bookingApi.setAvailability(data)
+            if (res.success) {
+                setAvailability([...availability, res.data])
+                setFormOpen(false)
+                alert("Availability added!")
+            }
+        } catch (err) {
+            console.error(err)
+            alert("Failed to add availability")
+        }
     }
 
-    if (error) {
-        return (
-            <div className="flex flex-col items-center justify-center h-96 gap-4">
-                <p className="text-destructive">{error}</p>
-                <Button onClick={loadSchedule}>Retry</Button>
-            </div>
-        )
+    const handleDeleteAvailability = async (id) => {
+        if (!confirm("Delete this slot?")) return
+        try {
+            await bookingApi.deleteAvailability(id)
+            setAvailability(availability.filter(a => a.availability_id !== id))
+        } catch (err) {
+            alert("Failed to delete")
+        }
     }
+
+    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
+        <div className="max-w-6xl mx-auto p-4 md:p-8">
+            <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold text-[#f0f0f0]">Schedule</h1>
-                    <p className="text-muted-foreground">Manage your availability and bookings</p>
+                    <h1 className="text-3xl font-bold text-[#f0f0f0] mb-2">My Schedule</h1>
+                    <p className="text-[#a0a0a0]">Manage sessions and availability</p>
                 </div>
-                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                    <DialogTrigger asChild>
-                        <Button>
-                            <Plus className="mr-2 h-4 w-4" />
-                            Add Availability
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="bg-[#141414] border-[#282828] text-[#f0f0f0]">
-                        <DialogHeader>
-                            <DialogTitle className="text-[#f0f0f0]">Add Availability</DialogTitle>
-                            <DialogDescription>Create a new available time slot for bookings</DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4 py-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="date" className="text-[#a0a0a0]">Date</Label>
-                                <Input
-                                    id="date"
-                                    type="date"
-                                    className="bg-[#141414] border-[#282828] text-[#f0f0f0]"
-                                    value={formData.date}
-                                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                                />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="startTime" className="text-[#a0a0a0]">Start Time</Label>
-                                    <Input
-                                        id="startTime"
-                                        type="time"
-                                        className="bg-[#141414] border-[#282828] text-[#f0f0f0]"
-                                        value={formData.startTime}
-                                        onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="endTime" className="text-[#a0a0a0]">End Time</Label>
-                                    <Input
-                                        id="endTime"
-                                        type="time"
-                                        className="bg-[#141414] border-[#282828] text-[#f0f0f0]"
-                                        value={formData.endTime}
-                                        onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                                    />
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="notes" className="text-[#a0a0a0]">Notes (Optional)</Label>
-                                <Textarea
-                                    id="notes"
-                                    className="bg-[#141414] border-[#282828] text-[#f0f0f0]"
-                                    value={formData.notes}
-                                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                                    placeholder="Add any notes about this availability..."
-                                />
-                            </div>
-                        </div>
-                        <DialogFooter>
-                            <Button variant="outline" onClick={() => setDialogOpen(false)} className="border-[#282828] text-[#f0f0f0] hover:bg-[#282828]">
-                                Cancel
-                            </Button>
-                            <Button onClick={handleAddAvailability}>Add Availability</Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
+                <button
+                    onClick={() => setFormOpen(!formOpen)}
+                    className="flex items-center gap-2 px-4 py-2 bg-[#f0f0f0] text-[#141414] font-bold rounded hover:bg-[#e0e0e0]"
+                >
+                    <Plus size={18} /> Add Free Slot
+                </button>
             </div>
 
-            <Card className="bg-[#141414] border-[#282828] text-[#f0f0f0]">
-                <CardHeader>
-                    <CardTitle>Week View</CardTitle>
-                    <CardDescription>Jan 13 - Jan 19, 2025</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    {isLoading ? (
+            {/* Add Availability Form */}
+            {formOpen && (
+                <div className="bg-[#282828] p-6 rounded-lg mb-8 border border-[#404040]">
+                    <h3 className="font-bold text-[#f0f0f0] mb-4">Set Availability for Auto-Accept</h3>
+                    <form onSubmit={handleAddAvailability} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex items-center gap-2 text-[#f0f0f0]">
+                            <input
+                                type="checkbox"
+                                checked={isRecurring}
+                                onChange={(e) => setIsRecurring(e.target.checked)}
+                                className="w-4 h-4"
+                            />
+                            <label>Recurring Weekly?</label>
+                        </div>
+
+                        {isRecurring ? (
+                            <select
+                                value={selectedDay}
+                                onChange={e => setSelectedDay(e.target.value)}
+                                className="bg-[#141414] border border-[#404040] text-[#f0f0f0] p-2 rounded"
+                            >
+                                {days.map((d, i) => <option key={i} value={i}>{d}</option>)}
+                            </select>
+                        ) : (
+                            <input
+                                type="date"
+                                value={selectedDate}
+                                onChange={e => setSelectedDate(e.target.value)}
+                                className="bg-[#141414] border border-[#404040] text-[#f0f0f0] p-2 rounded"
+                                required
+                            />
+                        )}
+
+                        <input
+                            type="time"
+                            value={startTime}
+                            onChange={e => setStartTime(e.target.value)}
+                            className="bg-[#141414] border border-[#404040] text-[#f0f0f0] p-2 rounded"
+                            required
+                        />
+                        <input
+                            type="time"
+                            value={endTime}
+                            onChange={e => setEndTime(e.target.value)}
+                            className="bg-[#141414] border border-[#404040] text-[#f0f0f0] p-2 rounded"
+                            required
+                        />
+
+                        <button type="submit" className="md:col-span-2 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 font-bold">
+                            Save Slot
+                        </button>
+                    </form>
+                </div>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Confirmed Sessions List */}
+                <div>
+                    <h2 className="text-xl font-bold text-[#f0f0f0] mb-4 border-b border-[#404040] pb-2">Upcoming Sessions</h2>
+                    {sessions.length === 0 ? (
+                        <p className="text-[#a0a0a0]">No upcoming sessions.</p>
+                    ) : (
                         <div className="space-y-4">
-                            {[...Array(5)].map((_, i) => (
-                                <Skeleton key={i} className="h-20 w-full" />
+                            {sessions.map(sess => (
+                                <div key={sess.session_id} className="bg-[#1E1E1E] p-4 rounded border border-[#282828]">
+                                    <p className="text-[#f0f0f0] font-bold">{sess.member?.full_name}</p>
+                                    <p className="text-[#a0a0a0] text-sm">
+                                        {new Date(sess.start_time).toLocaleString()}
+                                    </p>
+                                    <span className="inline-block px-2 py-0.5 mt-2 text-xs bg-green-500/20 text-green-500 rounded">
+                                        Confirmed
+                                    </span>
+                                </div>
                             ))}
                         </div>
-                    ) : schedule.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-12 text-center">
-                            <Clock className="h-12 w-12 text-muted-foreground mb-4" />
-                            <p className="text-muted-foreground">No schedule items for this week</p>
-                            <Button className="mt-4" onClick={() => setDialogOpen(true)}>
-                                Add Availability
-                            </Button>
-                        </div>
-                    ) : (
-                        <div className="overflow-x-auto">
-                            <div className="min-w-[600px] space-y-2">
-                                {TIME_SLOTS.map((time) => (
-                                    <div key={time} className="flex gap-2">
-                                        <div className="w-20 flex items-center justify-end pr-2 text-sm text-muted-foreground">{time}</div>
-                                        <div className="flex-1 grid grid-cols-7 gap-2">
-                                            {DAYS_OF_WEEK.map((day, idx) => {
-                                                const slot = schedule.find((s) => s.startTime === time && new Date(s.date).getDay() === idx + 1)
-                                                return (
-                                                    <button
-                                                        key={day}
-                                                        onClick={() => slot && handleSlotClick(slot)}
-                                                        className={`h-16 rounded border text-xs p-1 transition-colors ${slot
-                                                                ? slot.type === "booked"
-                                                                    ? "bg-primary text-primary-foreground border-primary"
-                                                                    : slot.type === "available"
-                                                                        ? "bg-[#282828] text-[#f0f0f0] border-[#3E3E3E]"
-                                                                        : "bg-muted text-muted-foreground border-muted"
-                                                                : "bg-[#141414] border-[#282828] hover:bg-[#1E1E1E]"
-                                                            }`}
-                                                    >
-                                                        {slot && (
-                                                            <div className="text-left overflow-hidden">
-                                                                <div className="font-medium truncate">
-                                                                    {slot.type === "booked" ? slot.clientName : "Available"}
-                                                                </div>
-                                                                {slot.service && <div className="text-[10px] truncate">{slot.service}</div>}
-                                                            </div>
-                                                        )}
-                                                    </button>
-                                                )
-                                            })}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
                     )}
-                </CardContent>
-            </Card>
+                </div>
 
-            {/* Slot Detail Dialog */}
-            <Dialog open={!!selectedSlot} onOpenChange={() => setSelectedSlot(null)}>
-                <DialogContent className="bg-[#141414] border-[#282828] text-[#f0f0f0]">
-                    <DialogHeader>
-                        <DialogTitle className="text-[#f0f0f0]">Session Details</DialogTitle>
-                    </DialogHeader>
-                    {selectedSlot && (
-                        <div className="space-y-4 py-4">
-                            <div>
-                                <p className="text-sm text-muted-foreground">Date & Time</p>
-                                <p className="font-medium">
-                                    {selectedSlot.date} at {selectedSlot.startTime} - {selectedSlot.endTime}
-                                </p>
-                            </div>
-                            {selectedSlot.type === "booked" && (
-                                <>
+                {/* Availability List */}
+                <div>
+                    <h2 className="text-xl font-bold text-[#f0f0f0] mb-4 border-b border-[#404040] pb-2">My Availability (Auto-Accept)</h2>
+                    {availability.length === 0 ? (
+                        <p className="text-[#a0a0a0]">No availability set.</p>
+                    ) : (
+                        <div className="space-y-4">
+                            {availability.map(slot => (
+                                <div key={slot.availability_id} className="bg-[#1E1E1E] p-4 rounded border border-[#282828] flex justify-between items-center">
                                     <div>
-                                        <p className="text-sm text-muted-foreground">Client</p>
-                                        <p className="font-medium">{selectedSlot.clientName}</p>
+                                        <p className="text-[#f0f0f0] font-medium">
+                                            {slot.is_recurring
+                                                ? `${days[slot.day_of_week]}s (Recurring)`
+                                                : new Date(slot.date).toLocaleDateString()
+                                            }
+                                        </p>
+                                        <p className="text-[#a0a0a0] text-sm">
+                                            {slot.start_time.slice(0, 5)} - {slot.end_time.slice(0, 5)}
+                                        </p>
                                     </div>
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">Service</p>
-                                        <p className="font-medium">{selectedSlot.service}</p>
-                                    </div>
-                                </>
-                            )}
-                            {selectedSlot.notes && (
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Notes</p>
-                                    <p className="text-sm">{selectedSlot.notes}</p>
+                                    <button
+                                        onClick={() => handleDeleteAvailability(slot.availability_id)}
+                                        className="text-red-500 hover:text-red-400 p-2"
+                                    >
+                                        <Trash2 size={18} />
+                                    </button>
                                 </div>
-                            )}
+                            ))}
                         </div>
                     )}
-                    <DialogFooter>
-                        <Button onClick={() => setSelectedSlot(null)} className="border-[#282828] text-[#f0f0f0] hover:bg-[#282828]">Close</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                </div>
+            </div>
         </div>
     )
 }

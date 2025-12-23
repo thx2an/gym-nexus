@@ -1,113 +1,90 @@
 "use client"
 
-import { useState } from "react"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Clock, Calendar, Check, X } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { useState, useEffect } from "react"
+import { bookingApi } from "@/lib/api/bookingApi"
+import { Check, X, Calendar } from "lucide-react"
 
-export default function RequestsPage() {
-    const { toast } = useToast()
-    const [requests, setRequests] = useState([
-        {
-            id: 1,
-            client: "Mike Davis",
-            avatar: "/placeholder.svg?height=40&width=40",
-            type: "New Client",
-            date: "2024-01-20",
-            time: "10:00 AM",
-            message: "Looking to build muscle and improve overall fitness",
-            status: "pending",
-        },
-        {
-            id: 2,
-            client: "Emma Wilson",
-            avatar: "/placeholder.svg?height=40&width=40",
-            type: "Reschedule",
-            date: "2024-01-18",
-            time: "2:00 PM",
-            message: "Can we move my session to Friday afternoon?",
-            status: "pending",
-        },
-    ])
+export default function PtRequestsPage() {
+    const [requests, setRequests] = useState([])
+    const [loading, setLoading] = useState(true)
 
-    const handleApprove = (id) => {
-        setRequests(requests.filter((r) => r.id !== id))
-        toast({ title: "Request approved" })
+    useEffect(() => {
+        loadRequests()
+    }, [])
+
+    const loadRequests = async () => {
+        try {
+            setLoading(true)
+            const res = await bookingApi.getSessions({ status: 'pending' })
+            if (res.success) {
+                setRequests(res.data)
+            }
+        } catch (err) {
+            console.error("Failed to load requests", err)
+        } finally {
+            setLoading(false)
+        }
     }
 
-    const handleDecline = (id) => {
-        setRequests(requests.filter((r) => r.id !== id))
-        toast({ title: "Request declined", variant: "destructive" })
+    const handleAction = async (id, status) => {
+        try {
+            if (!confirm(`Are you sure you want to ${status} this request?`)) return
+
+            const res = await bookingApi.updateStatus(id, status)
+            if (res.success) {
+                setRequests(prev => prev.filter(r => r.session_id !== id))
+                alert(`Request ${status} successfully`)
+            }
+        } catch (err) {
+            console.error(err)
+            alert("Failed to update status")
+        }
     }
 
     return (
-        <div className="p-6 space-y-6">
-            <div>
-                <h1 className="text-2xl font-bold text-[#f0f0f0]">Client Requests</h1>
-                <p className="text-muted-foreground">Manage booking and schedule requests</p>
+        <div className="max-w-5xl mx-auto p-4 md:p-8">
+            <div className="mb-8">
+                <h1 className="text-3xl font-bold text-[#f0f0f0] mb-2">Booking Requests</h1>
+                <p className="text-[#a0a0a0]">Manage incoming session requests from members</p>
             </div>
 
-            {requests.length === 0 ? (
-                <Card className="bg-[#141414] border-[#282828] p-12 text-center text-[#f0f0f0]">
-                    <p className="text-muted-foreground">No pending requests</p>
-                </Card>
+            {loading ? (
+                <div className="text-[#f0f0f0]">Loading requests...</div>
+            ) : requests.length === 0 ? (
+                <div className="text-center py-12 bg-[#282828] rounded-lg">
+                    <Calendar className="h-12 w-12 text-[#606060] mx-auto mb-4" />
+                    <p className="text-[#a0a0a0]">No pending requests</p>
+                </div>
             ) : (
                 <div className="space-y-4">
-                    {requests.map((request) => (
-                        <Card key={request.id} className="bg-[#141414] border-[#282828] p-6 text-[#f0f0f0]">
-                            <div className="flex items-start justify-between">
-                                <div className="flex gap-4">
-                                    <Avatar>
-                                        <AvatarImage src={request.avatar || "/placeholder.svg"} />
-                                        <AvatarFallback className="text-[#141414]">{request.client[0]}</AvatarFallback>
-                                    </Avatar>
-
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <h3 className="font-semibold">{request.client}</h3>
-                                            <Badge variant="secondary" className="bg-[#282828] text-[#f0f0f0]">{request.type}</Badge>
-                                        </div>
-
-                                        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
-                                            <div className="flex items-center gap-1">
-                                                <Calendar className="h-4 w-4" />
-                                                <span>{request.date}</span>
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <Clock className="h-4 w-4" />
-                                                <span>{request.time}</span>
-                                            </div>
-                                        </div>
-
-                                        <p className="text-[#f0f0f0]">{request.message}</p>
-                                    </div>
+                    {requests.map((req) => (
+                        <div key={req.session_id} className="bg-[#282828] p-6 rounded-lg border border-[#282828] flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <div>
+                                <h3 className="text-lg font-bold text-[#f0f0f0]">{req.member?.full_name || "Unknown Member"}</h3>
+                                <div className="text-[#a0a0a0] text-sm mt-1">
+                                    <p>Date: {new Date(req.start_time).toLocaleDateString()}</p>
+                                    <p>Time: {new Date(req.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(req.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                                 </div>
-
-                                <div className="flex gap-2">
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="gap-2 bg-transparent border-[#282828] hover:bg-[#282828] text-[#f0f0f0]"
-                                        onClick={() => handleApprove(request.id)}
-                                    >
-                                        <Check className="h-4 w-4" />
-                                        Approve
-                                    </Button>
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="gap-2 bg-transparent border-[#282828] hover:bg-[#282828] text-[#f0f0f0]"
-                                        onClick={() => handleDecline(request.id)}
-                                    >
-                                        <X className="h-4 w-4" />
-                                        Decline
-                                    </Button>
-                                </div>
+                                {req.notes && (
+                                    <p className="text-[#d0d0d0] text-sm mt-2 italic">"{req.notes}"</p>
+                                )}
                             </div>
-                        </Card>
+
+                            <div className="flex gap-3 w-full md:w-auto">
+                                <button
+                                    onClick={() => handleAction(req.session_id, 'confirmed')}
+                                    className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded transition-colors"
+                                >
+                                    <Check size={18} /> Accept
+                                </button>
+                                <button
+                                    onClick={() => handleAction(req.session_id, 'canceled')}
+                                    className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
+                                >
+                                    <X size={18} /> Reject
+                                </button>
+                            </div>
+                        </div>
                     ))}
                 </div>
             )}

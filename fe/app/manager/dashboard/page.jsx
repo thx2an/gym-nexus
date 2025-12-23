@@ -1,13 +1,39 @@
 "use client";
 
-import { Building2, Users, Package, DollarSign } from "lucide-react";
+import { Users, Package, DollarSign } from "lucide-react";
+import { useEffect, useState } from "react";
+import managerApi from "@/lib/api/managerApi";
 
 export default function ManagerDashboardPage() {
+  const [statsData, setStatsData] = useState({
+    active_members: 0,
+    membership_count: 0,
+    monthly_revenue: 0
+  });
+
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      const res = await managerApi.getStats();
+      if (res) {
+        setStatsData(res);
+      }
+    } catch (error) {
+      console.error("Failed to fetch stats", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const stats = [
-    { label: "Total Branches", value: 4, icon: Building2 },
-    { label: "Active Members", value: 320, icon: Users },
-    { label: "Membership Packages", value: 12, icon: Package },
-    { label: "Monthly Revenue", value: "$24,500", icon: DollarSign },
+    { label: "Active Members", value: statsData.active_members, icon: Users },
+    { label: "Membership Packages", value: statsData.membership_count, icon: Package },
+    { label: "Monthly Revenue", value: `$${Number(statsData.monthly_revenue).toLocaleString()}`, icon: DollarSign },
   ];
 
   return (
@@ -23,7 +49,7 @@ export default function ManagerDashboardPage() {
       </div>
 
       {/* ================= STATS ================= */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-3">
         {stats.map((item, i) => {
           const Icon = item.icon;
 
@@ -42,7 +68,7 @@ export default function ManagerDashboardPage() {
                 {item.label}
               </p>
               <p className="text-2xl font-semibold text-white">
-                {item.value}
+                {loading ? "..." : item.value}
               </p>
             </div>
           );

@@ -8,7 +8,8 @@ export default function PTEditProfileModal({ isOpen, onClose, initialData, onSav
     const [formData, setFormData] = useState({
         name: "",
         phone: "",
-        address: "",
+        gender: "",
+        date_of_birth: "",
         ...initialData,
     });
     const [loading, setLoading] = useState(false);
@@ -96,17 +97,33 @@ export default function PTEditProfileModal({ isOpen, onClose, initialData, onSav
                                 </div>
                             </div>
 
-                            <div className="space-y-1.5">
-                                <label className="text-xs font-semibold text-[#a0a0a0] uppercase tracking-wider">Address</label>
-                                <div className="relative">
-                                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-[#606060]" />
-                                    <textarea
-                                        rows={2}
-                                        value={formData.address}
-                                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                        className="w-full pl-9 pr-4 py-2.5 bg-[#1E1E1E] border border-[#282828] rounded-lg text-[#f0f0f0] focus:outline-none focus:border-[#f0f0f0] transition-colors placeholder-[#404040] resize-none"
-                                        placeholder="Enter your address"
-                                    />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-semibold text-[#a0a0a0] uppercase tracking-wider">Gender</label>
+                                    <div className="relative">
+                                        <select
+                                            name="gender"
+                                            value={formData.gender || ''}
+                                            onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                                            className="w-full pl-3 pr-4 py-2.5 bg-[#1E1E1E] border border-[#282828] rounded-lg text-[#f0f0f0] focus:outline-none focus:border-[#f0f0f0] transition-colors placeholder-[#404040]"
+                                        >
+                                            <option value="">Select Gender</option>
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-semibold text-[#a0a0a0] uppercase tracking-wider">Date of Birth</label>
+                                    <div className="relative">
+                                        <input
+                                            type="date"
+                                            value={formData.date_of_birth || ''}
+                                            onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+                                            className="w-full pl-3 pr-4 py-2.5 bg-[#1E1E1E] border border-[#282828] rounded-lg text-[#f0f0f0] focus:outline-none focus:border-[#f0f0f0] transition-colors placeholder-[#404040]"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>

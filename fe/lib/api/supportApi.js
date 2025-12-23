@@ -1,106 +1,69 @@
-// TODO: Replace mock data with actual API endpoints
+import axiosClient from "./axiosClient"
+
+const mockChatHistory = [
+  { id: 1, sender: "Support", message: "Hi! How can I help you today?", timestamp: "2024-01-10T10:00:00Z" },
+  { id: 2, sender: "You", message: "I have a question about my membership.", timestamp: "2024-01-10T10:01:00Z" },
+  {
+    id: 3,
+    sender: "Support",
+    message: "Sure, I'd be happy to help. What would you like to know?",
+    timestamp: "2024-01-10T10:02:00Z",
+  },
+]
+
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export const supportApi = {
-  // Get user's tickets
-  async getTickets() {
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    return {
-      success: true,
-      data: [
-        {
-          id: 1,
-          subject: "Payment issue",
-          category: "Billing",
-          status: "Open",
-          lastUpdate: "2024-01-10T10:00:00Z",
-          createdAt: "2024-01-09T14:00:00Z",
-        },
-        {
-          id: 2,
-          subject: "Locker problem",
-          category: "Facilities",
-          status: "In Progress",
-          lastUpdate: "2024-01-08T16:00:00Z",
-          createdAt: "2024-01-07T10:00:00Z",
-        },
-        {
-          id: 3,
-          subject: "Membership renewal question",
-          category: "Membership",
-          status: "Resolved",
-          lastUpdate: "2024-01-05T12:00:00Z",
-          createdAt: "2024-01-04T09:00:00Z",
-        },
-      ],
-    }
+  // Member tickets
+  getTickets() {
+    return axiosClient.get("/support/tickets")
   },
 
-  // Get ticket detail with thread
-  async getTicketDetail(ticketId) {
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    return {
-      success: true,
-      data: {
-        id: ticketId,
-        subject: "Payment issue",
-        category: "Billing",
-        status: "Open",
-        createdAt: "2024-01-09T14:00:00Z",
-        messages: [
-          {
-            id: 1,
-            sender: "You",
-            message: "I was charged twice for my membership this month.",
-            timestamp: "2024-01-09T14:00:00Z",
-          },
-          {
-            id: 2,
-            sender: "Support Team",
-            message:
-              "Thank you for reaching out. We're looking into this issue and will get back to you within 24 hours.",
-            timestamp: "2024-01-09T15:30:00Z",
-          },
-        ],
-      },
-    }
+  getTicketDetail(ticketId) {
+    return axiosClient.get(`/support/tickets/${ticketId}`)
   },
 
-  // Create new ticket
-  async createTicket(data) {
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    return {
-      success: true,
-      data: {
-        ticketId: "TICK" + Date.now(),
-        subject: data.subject,
-        category: data.category,
-        status: "Open",
-        createdAt: new Date().toISOString(),
-      },
-    }
+  createTicket(data) {
+    return axiosClient.post("/support/tickets", data)
   },
 
-  // Get chat messages (mock)
+  replyMemberTicket(ticketId, payload) {
+    return axiosClient.post(`/support/tickets/${ticketId}/reply`, payload)
+  },
+
+  closeMemberTicket(ticketId) {
+    return axiosClient.post(`/support/tickets/${ticketId}/close`)
+  },
+
+  // Staff tickets
+  getStaffTickets() {
+    return axiosClient.get("/support/staff/tickets")
+  },
+
+  getStaffTicketDetail(ticketId) {
+    return axiosClient.get(`/support/staff/tickets/${ticketId}`)
+  },
+
+  replyStaffTicket(ticketId, payload) {
+    return axiosClient.post(`/support/staff/tickets/${ticketId}/reply`, payload)
+  },
+
+  closeStaffTicket(ticketId) {
+    return axiosClient.post(`/support/staff/tickets/${ticketId}/close`)
+  },
+
+  // Chat (mock)
+  async getChatHistory() {
+    await delay(500)
+    return { success: true, data: mockChatHistory }
+  },
+
   async getChatMessages() {
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    return {
-      success: true,
-      data: [
-        { id: 1, sender: "Support", message: "Hi! How can I help you today?", timestamp: "2024-01-10T10:00:00Z" },
-        { id: 2, sender: "You", message: "I have a question about my membership.", timestamp: "2024-01-10T10:01:00Z" },
-        {
-          id: 3,
-          sender: "Support",
-          message: "Sure, I'd be happy to help. What would you like to know?",
-          timestamp: "2024-01-10T10:02:00Z",
-        },
-      ],
-    }
+    return this.getChatHistory()
   },
 
-  // Send chat message
   async sendChatMessage(message) {
-    await new Promise((resolve) => setTimeout(resolve, 500))
+    await delay(500)
     return {
       success: true,
       data: {

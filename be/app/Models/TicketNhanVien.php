@@ -27,4 +27,9 @@ class TicketNhanVien extends Model
     {
         return $this->belongsTo(NguoiDung::class, 'assigned_to', 'user_id');
     }
+
+    public function messages()
+    {
+        return $this->hasMany(TinNhanTicket::class, 'ticket_id', 'ticket_id');
+    }
 }

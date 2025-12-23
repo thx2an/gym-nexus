@@ -8,21 +8,17 @@ class NoiDungTinNhan extends Model
 {
     protected $table = 'noi_dung_tin_nhans';
     protected $primaryKey = 'msg_id';
-    public $timestamps = false; // Only created_at is used
+    public $timestamps = false; // Only created_at in schema via useCurrent()
 
     protected $fillable = [
         'chat_id',
         'sender_id',
         'sender_role',
         'content',
-        'created_at',
+        'created_at'
     ];
 
-    protected $casts = [
-        'created_at' => 'datetime',
-    ];
-
-    public function chatSession()
+    public function chat()
     {
         return $this->belongsTo(PhienTinNhan::class, 'chat_id', 'chat_id');
     }

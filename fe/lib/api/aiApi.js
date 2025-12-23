@@ -1,4 +1,5 @@
 // TODO: Replace mock data with actual API endpoints
+import axiosClient from "./axiosClient";
 
 export const aiApi = {
   // Generate workout plan
@@ -91,31 +92,6 @@ export const aiApi = {
 
   // Calculate injury risk
   async calculateInjuryRisk(data) {
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    let risk = "Low"
-    let score = 25
-
-    if (data.trainingLoad > 8 || data.soreness > 7) {
-      risk = "High"
-      score = 75
-    } else if (data.trainingLoad > 6 || data.soreness > 5) {
-      risk = "Medium"
-      score = 50
-    }
-
-    return {
-      success: true,
-      data: {
-        risk,
-        score,
-        recommendations: [
-          "Consider taking a rest day",
-          "Focus on recovery and stretching",
-          "Reduce training intensity by 20%",
-          "Stay hydrated and get adequate sleep",
-        ],
-      },
-    }
+    return axiosClient.post("/ai/injury-risk", data);
   },
 }

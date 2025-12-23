@@ -8,23 +8,24 @@ class PhienTinNhan extends Model
 {
     protected $table = 'phien_tin_nhans';
     protected $primaryKey = 'chat_id';
+    public $timestamps = true; // Table has timestamps
 
     protected $fillable = [
         'member_id',
         'support_staff_id',
         'status',
         'started_at',
-        'ended_at',
+        'ended_at'
     ];
 
-    protected $casts = [
-        'started_at' => 'datetime',
-        'ended_at' => 'datetime',
-    ];
+    public function messages()
+    {
+        return $this->hasMany(NoiDungTinNhan::class, 'chat_id', 'chat_id');
+    }
 
     public function member()
     {
-        return $this->belongsTo(ProfileMember::class, 'member_id', 'member_id');
+        return $this->belongsTo(MemberProfile::class, 'member_id', 'member_id');
     }
 
     public function supportStaff()

@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { CreditCard, Download, X, Calendar, DollarSign } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { CreditCard, Download, X, Calendar, DollarSign, ExternalLink } from "lucide-react"
 import { paymentApi } from "@/lib/api/paymentApi"
 
 export default function PaymentsPage() {
@@ -32,26 +33,37 @@ export default function PaymentsPage() {
     }
   }
 
-  const handleDownloadInvoice = async (transactionId) => {
-    try {
-      setDownloading(true)
-      await paymentApi.downloadInvoice(transactionId)
-    } catch (err) {
-      console.error("Failed to download invoice", err)
-    } finally {
-      setDownloading(false)
+  const router = useRouter()
+
+  const handleViewInvoice = (invoiceId) => {
+    if (invoiceId) {
+      // Open in new tab
+      window.open(`/memberships/history/invoice/${invoiceId}`, '_blank')
     }
   }
 
+  const normalizeStatus = (status) => String(status || "").toLowerCase()
+
+  const isSuccessStatus = (status) => normalizeStatus(status) === "success"
+
   const getStatusBadge = (status) => {
+    const statusKey = normalizeStatus(status)
     const styles = {
-      Success: "bg-green-500/10 text-green-500 border-green-500/20",
-      Failed: "bg-red-500/10 text-red-500 border-red-500/20",
-      Pending: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
+      success: "bg-green-500/10 text-green-500 border-green-500/20",
+      failed: "bg-red-500/10 text-red-500 border-red-500/20",
+      pending: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
+      refunded: "bg-blue-500/10 text-blue-500 border-blue-500/20",
     }
+    const labels = {
+      success: "Success",
+      failed: "Failed",
+      pending: "Pending",
+      refunded: "Refunded",
+    }
+    const label = labels[statusKey] || status
     return (
-      <span className={`px-3 py-1 rounded-lg border text-xs font-semibold ${styles[status] || styles.Pending}`}>
-        {status}
+      <span className={`px-3 py-1 rounded-lg border text-xs font-semibold ${styles[statusKey] || styles.pending}`}>
+        {label}
       </span>
     )
   }
@@ -109,47 +121,49 @@ export default function PaymentsPage() {
                   <tr>
                     <th className="text-left px-6 py-4 text-[#a0a0a0] font-semibold text-sm">Date</th>
                     <th className="text-left px-6 py-4 text-[#a0a0a0] font-semibold text-sm">Package</th>
-                    <th className="text-left px-6 py-4 text-[#a0a0a0] font-semibold text-sm">Amount</th>
+                    <th className="text-left px-6 py-4 text-[#a0a0a0] font-semibold text-sm">Amount (VND)</th>
                     <th className="text-left px-6 py-4 text-[#a0a0a0] font-semibold text-sm">Method</th>
                     <th className="text-left px-6 py-4 text-[#a0a0a0] font-semibold text-sm">Status</th>
                     <th className="text-right px-6 py-4 text-[#a0a0a0] font-semibold text-sm">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {payments.map((payment, index) => (
-                    <tr
-                      key={payment.id}
-                      onClick={() => setSelectedPayment(payment)}
-                      className={`cursor-pointer hover:bg-[#1E1E1E] transition-colors ${index !== payments.length - 1 ? "border-b border-[#282828]" : ""}`}
-                    >
-                      <td className="px-6 py-4 text-[#f0f0f0]">
-                        {new Date(payment.date).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                      </td>
-                      <td className="px-6 py-4 text-[#f0f0f0]">{payment.packageName}</td>
-                      <td className="px-6 py-4 text-[#f0f0f0] font-semibold">${payment.amount}</td>
-                      <td className="px-6 py-4 text-[#a0a0a0]">{payment.method}</td>
-                      <td className="px-6 py-4">{getStatusBadge(payment.status)}</td>
-                      <td className="px-6 py-4 text-right">
-                        {payment.status === "Success" && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleDownloadInvoice(payment.id)
-                            }}
-                            disabled={downloading}
-                            className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#f0f0f0] hover:bg-[#e0e0e0] text-[#141414] rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-                          >
-                            <Download className="h-4 w-4" />
-                            Invoice
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                  {payments.map((payment, index) => {
+                    const canViewInvoice = isSuccessStatus(payment.status) && payment.invoiceId
+                    return (
+                      <tr
+                        key={payment.id}
+                        onClick={() => setSelectedPayment(payment)}
+                        className={`cursor-pointer hover:bg-[#1E1E1E] transition-colors ${index !== payments.length - 1 ? "border-b border-[#282828]" : ""}`}
+                      >
+                        <td className="px-6 py-4 text-[#f0f0f0]">
+                          {new Date(payment.date).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </td>
+                        <td className="px-6 py-4 text-[#f0f0f0]">{payment.packageName}</td>
+                        <td className="px-6 py-4 text-[#f0f0f0] font-semibold">{payment.amount}</td>
+                        <td className="px-6 py-4 text-[#a0a0a0]">{payment.method}</td>
+                        <td className="px-6 py-4">{getStatusBadge(payment.status)}</td>
+                        <td className="px-6 py-4 text-right">
+                          {canViewInvoice && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleViewInvoice(payment.invoiceId)
+                              }}
+                              className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#f0f0f0] hover:bg-[#e0e0e0] text-[#141414] rounded-lg text-sm font-medium transition-colors"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                              View Invoice
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
@@ -177,7 +191,7 @@ export default function PaymentsPage() {
                 <div className="w-16 h-16 bg-[#282828] rounded-full flex items-center justify-center mx-auto mb-4">
                   <CreditCard className="h-8 w-8 text-[#f0f0f0]" />
                 </div>
-                <div className="text-4xl font-bold text-[#f0f0f0] mb-2">${selectedPayment.amount}</div>
+                <div className="text-4xl font-bold text-[#f0f0f0] mb-2">{selectedPayment.amount} VND</div>
                 {getStatusBadge(selectedPayment.status)}
               </div>
 
@@ -210,14 +224,13 @@ export default function PaymentsPage() {
                 </div>
               </div>
 
-              {selectedPayment.status === "Success" && (
+              {isSuccessStatus(selectedPayment.status) && selectedPayment.invoiceId && (
                 <button
-                  onClick={() => handleDownloadInvoice(selectedPayment.id)}
-                  disabled={downloading}
-                  className="w-full px-6 py-3 bg-[#f0f0f0] hover:bg-[#e0e0e0] text-[#141414] rounded-lg font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                  onClick={() => handleViewInvoice(selectedPayment.invoiceId)}
+                  className="w-full px-6 py-3 bg-[#f0f0f0] hover:bg-[#e0e0e0] text-[#141414] rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
                 >
-                  <Download className="h-5 w-5" />
-                  {downloading ? "Downloading..." : "Download Invoice"}
+                  <ExternalLink className="h-5 w-5" />
+                  View Invoice
                 </button>
               )}
             </div>

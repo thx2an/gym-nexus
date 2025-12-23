@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import { useRouter } from "next/navigation";
+import authApi from "@/lib/api/authApi";
+
 export default function RegisterPage() {
+  const router = useRouter();
   const [form, setForm] = useState({
     full_name: "",
     email: "",
@@ -13,28 +17,85 @@ export default function RegisterPage() {
     password: "",
     confirm_password: "",
   });
-
+  const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const [showExitDialog, setShowExitDialog] = useState(false);
 
   const updateField = (field, value) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    let newValue = value;
+
+    // Quick Guard / Normalization
+    if (field === 'full_name') {
+      newValue = value.replace(/\s+/g, ' ');
+    } else if (field === 'phone') {
+      newValue = value.replace(/[^0-9+]/g, '');
+    } else if (field === 'email') {
+      newValue = value.trim();
+    }
+
+    setForm((prev) => ({ ...prev, [field]: newValue }));
   };
 
   /* ================= VALIDATION ================= */
   const validate = () => {
     const newErrors = {};
 
-    if (!form.full_name.trim()) newErrors.full_name = "Full name is required.";
-    if (!form.email.trim()) newErrors.email = "Email is required.";
-    if (!form.phone.trim()) newErrors.phone = "Phone is required.";
-    if (!form.gender) newErrors.gender = "Gender is required.";
-    if (!form.date_of_birth) newErrors.date_of_birth = "Date of birth is required.";
+    // 1. Full Name
+    const nameRegex = /^(?=.{2,50}$)[\p{L}]+(?:[ '-][\p{L}]+)*$/u;
+    if (!form.full_name) {
+      newErrors.full_name = "Full name is required.";
+    } else if (!nameRegex.test(form.full_name.trim())) {
+      newErrors.full_name = "Name must be 2-50 chars, no numbers or special symbols.";
+    }
 
-    if (!form.password.trim()) {
+    // 2. Email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!form.email) {
+      newErrors.email = "Email is required.";
+    } else if (!emailRegex.test(form.email)) {
+      newErrors.email = "Invalid email format.";
+    } else if (form.email.length > 254) {
+      newErrors.email = "Email is too long.";
+    }
+
+    // 3. Phone
+    const phoneRegex = /^(?:0\d{9}|\+84\d{9})$/;
+    if (!form.phone) newErrors.phone = "Phone is required.";
+    else if (!phoneRegex.test(form.phone)) {
+      newErrors.phone = "Phone must be 10 digits (0xxxxxxxxx) or +84xxxxxxxxx.";
+    }
+
+    // 4. Gender
+    if (!form.gender) newErrors.gender = "Gender is required.";
+
+    // 5. Date of Birth
+    if (!form.date_of_birth) {
+      newErrors.date_of_birth = "Date of birth is required.";
+    } else {
+      const dob = new Date(form.date_of_birth);
+      const today = new Date();
+      let age = today.getFullYear() - dob.getFullYear();
+      const m = today.getMonth() - dob.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+        age--;
+      }
+
+      if (dob >= today) {
+        newErrors.date_of_birth = "Date of birth must be in the past.";
+      } else if (age < 12) {
+        newErrors.date_of_birth = "You must be at least 12 years old.";
+      } else if (age > 90) {
+        newErrors.date_of_birth = "Date of birth is invalid.";
+      }
+    }
+
+    // 6. Password
+    if (!form.password) {
       newErrors.password = "Password is required.";
-    } else if (form.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters.";
+    } else if (form.password.length < 8 || form.password.length > 64) {
+      newErrors.password = "Password must be 8-64 characters.";
+    } else if (form.password !== form.password.trim()) {
+      newErrors.password = "Password cannot contain leading or trailing spaces.";
     }
 
     if (form.confirm_password !== form.password) {
@@ -45,10 +106,42 @@ export default function RegisterPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitting) return;
     if (!validate()) return;
-    console.log("Register submitted:", form);
+
+    setSubmitting(true);
+    try {
+      // Ensure date format is YYYY-MM-DD
+      const payload = { ...form };
+
+      const res = await authApi.register(payload);
+      // Assuming authApi.register throws on error or returns response
+      // If using previous convention:
+      alert("Registration successful! Please login.");
+      router.push("/auth/login");
+    } catch (error) {
+      console.error("Register Error:", error);
+      const responseData = error?.response?.data || error;
+      const serverErrors = responseData?.errors;
+
+      // Map backend validation errors to fields if possible
+      if (serverErrors) {
+        const normalizedErrors = Object.fromEntries(
+          Object.entries(serverErrors).map(([key, value]) => [
+            key,
+            Array.isArray(value) ? value[0] : value,
+          ])
+        );
+        setErrors(normalizedErrors);
+      } else {
+        const msg = responseData?.message || "Registration failed. Please try again.";
+        alert(msg);
+      }
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -76,7 +169,7 @@ export default function RegisterPage() {
           <Field placeholder="Phone Number" value={form.phone} error={errors.phone} onChange={(v) => updateField("phone", v)} />
 
           <div className="md:col-span-2">
-            <Field placeholder="Email Address" value={form.email} error={errors.email} onChange={(v) => updateField("email", v)} />
+            <Field type="email" placeholder="Email Address" value={form.email} error={errors.email} onChange={(v) => updateField("email", v)} />
           </div>
 
           <select

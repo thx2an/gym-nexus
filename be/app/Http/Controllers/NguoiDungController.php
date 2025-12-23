@@ -29,6 +29,18 @@ class NguoiDungController extends Controller
         // If user has no role, id_chuc_vu will be null
         $idChucVu = $user->vaiTros->first()?->role_id;
 
+        // Check profile completeness based on role
+        $hasProfile = false;
+        if ($idChucVu == 3) { // PT
+            $pt = \App\Models\ProfilePT::where('user_id', $user->user_id)->first();
+            // User requested check for: specialization, bio, experience_years
+            $hasProfile = $pt && !empty($pt->specialization) && !empty($pt->bio) && !is_null($pt->experience_years);
+        } else { // Member (Default check)
+            $mem = $user->memberProfile;
+            // User requested check for: current_height, current_weight, fitness_goal
+            $hasProfile = $mem && !empty($mem->current_height) && !empty($mem->current_weight) && !empty($mem->fitness_goal);
+        }
+
         return response()->json([
             'status' => true,
             'user' => [
@@ -36,7 +48,8 @@ class NguoiDungController extends Controller
                 'full_name' => $user->full_name,
                 'idChucVu' => $idChucVu,
                 'email' => $user->email,
-                // Add other fields if needed for localStorage
+                'phone' => $user->phone,
+                'has_profile' => $hasProfile,
             ]
         ]);
     }
@@ -76,6 +89,16 @@ class NguoiDungController extends Controller
         $user->load('vaiTros');
         $idChucVu = $user->vaiTros->first()?->role_id;
 
+        // Check profile completeness
+        $hasProfile = false;
+        if ($idChucVu == 3) {
+            $pt = \App\Models\ProfilePT::where('user_id', $user->user_id)->first();
+            $hasProfile = $pt && !empty($pt->specialization) && !empty($pt->bio) && !is_null($pt->experience_years);
+        } else {
+            $mem = $user->memberProfile()->first();
+            $hasProfile = $mem && !empty($mem->current_height) && !empty($mem->current_weight) && !empty($mem->fitness_goal);
+        }
+
         return response()->json([
             'status' => true,
             'message' => 'Login successfully',
@@ -85,6 +108,8 @@ class NguoiDungController extends Controller
                 'full_name' => $user->full_name,
                 'idChucVu' => $idChucVu,
                 'email' => $user->email,
+                'phone' => $user->phone,
+                'has_profile' => $hasProfile,
             ]
         ]);
     }
@@ -93,11 +118,22 @@ class NguoiDungController extends Controller
     public function dangKy(Request $request)
     {
         $request->validate([
-            'email' => 'required|email|unique:nguoi_dungs,email',
-            'full_name' => 'required',
-            'password' => 'required|min:8',
-            'phone' => 'unique:nguoi_dungs,phone',
-            'date_of_birth' => 'required',
+            'full_name' => [
+                'required',
+                'string',
+                'min:2',
+                'max:50',
+                'regex:/^(?=.{2,50}$)[\p{L}]+(?:[ \'-][\p{L}]+)*$/u'
+            ],
+            'email' => 'required|email|max:254|unique:nguoi_dungs,email',
+            'password' => 'required|string|min:8|max:64',
+            'phone' => [
+                'required',
+                'string',
+                'unique:nguoi_dungs,phone',
+                'regex:/^(?:0\d{9}|\+84\d{9})$/'
+            ],
+            'date_of_birth' => 'required|date|before:today|after:-90 years|before:-12 years',
             'gender' => 'required',
         ]);
 
@@ -109,13 +145,15 @@ class NguoiDungController extends Controller
             'phone' => $request->phone,
             'date_of_birth' => $request->date_of_birth,
             'gender' => $request->gender,
-            'status' => 'inactive',
-            'hash_active'   => $key,
+            'status' => 'active', // Auto-active
+            'hash_active'   => null, // No activation needed
         ]);
 
         // Assign default role (Member = 4)
         $user->vaiTros()->attach(4);
 
+        /* 
+        // Disabled Email Verification for Auto-Active
         $tieu_de = "Activate account - GymNexus";
         $view = "kichHoatTK";
         $noi_dung['full_name'] = $user->full_name;
@@ -123,16 +161,9 @@ class NguoiDungController extends Controller
         try {
             Mail::to($request->email)->send(new MasterMail($tieu_de, $view, $noi_dung));
         } catch (\Throwable $e) {
-            // Nếu gửi mail thất bại, rollback user để tránh trùng email/phone khi đăng ký lại
-            $user->vaiTros()->detach();
-            $user->delete();
-
-            return response()->json([
-                'status' => false,
-                'message' => 'Cant send a verify email. Please try again!',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+            // ...
+        } 
+        */
 
         return response()->json([
             'status' => true,
@@ -152,5 +183,108 @@ class NguoiDungController extends Controller
             'status'    =>  true,
             'message'   =>  'Activate account successfully!'
         ]);
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['status' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $data = $request->validate([
+            'full_name' => [
+                'required',
+                'string',
+                'min:2',
+                'max:50',
+                'regex:/^(?=.{2,50}$)[\p{L}]+(?:[ \'-][\p{L}]+)*$/u'
+            ],
+            'phone' => [
+                'required',
+                'string',
+                'max:20',
+                'unique:nguoi_dungs,phone,' . $user->user_id . ',user_id',
+                'regex:/^(?:0\d{9}|\+84\d{9})$/'
+            ],
+            'gender' => 'nullable|string|in:Male,Female,Other',
+            'date_of_birth' => 'nullable|date|before:today|after:-90 years|before:-12 years',
+        ]);
+
+        $user->update([
+            'full_name' => $data['full_name'],
+            'phone' => $data['phone'],
+            'gender' => $data['gender'],
+            'date_of_birth' => $data['date_of_birth'],
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Profile updated successfully',
+            'user' => $user
+        ]);
+    }
+    public function createMemberProfile(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['status' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        // Validate
+        $data = $request->validate([
+            'current_height' => 'required|numeric|min:100|max:250',
+            'current_weight' => 'required|numeric|min:30|max:300',
+            'fitness_goal' => 'required|string|max:255',
+            'medical_history' => 'nullable|string',
+        ]);
+
+        // Check if exists
+        if ($user->memberProfile()->exists()) {
+            return response()->json(['status' => false, 'message' => 'Profile already exists']);
+        }
+
+        // Create
+        $profile = \App\Models\MemberProfile::create([
+            'user_id' => $user->user_id,
+            'current_height' => $data['current_height'],
+            'current_weight' => $data['current_weight'],
+            'fitness_goal' => $data['fitness_goal'],
+            'medical_history' => $data['medical_history'] ?? null,
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Member profile created successfully',
+            'data' => $profile
+        ]);
+    }
+    public function me(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $user->load('vaiTros');
+        $idChucVu = $user->vaiTros->first()?->role_id;
+
+        // Check profile completeness
+        $hasProfile = false;
+        if ($idChucVu == 3) { // PT
+            $pt = \App\Models\ProfilePT::where('user_id', $user->user_id)->first();
+            // Strict check: non-empty specialization, bio, and non-null experience
+            $hasProfile = $pt && !empty($pt->specialization) && !empty($pt->bio) && !is_null($pt->experience_years);
+        } else { // Member
+            $mem = $user->memberProfile()->first();
+            // Strict check: non-empty height, weight, goal
+            $hasProfile = $mem && !empty($mem->current_height) && !empty($mem->current_weight) && !empty($mem->fitness_goal);
+        }
+
+        // Append has_profile to user object
+        $user->has_profile = $hasProfile;
+        $user->idChucVu = $idChucVu; // Ensure role is available if needed
+
+        return $user;
     }
 }
